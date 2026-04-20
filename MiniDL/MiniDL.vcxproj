@@ -11,7 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="tensor.cu" />
+    <CudaCompile Include="tensor.cu">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </CudaCompile>
+    <CudaCompile Include="tensor_2.cu" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0967DC5D-0484-D433-29E8-FA7F460C95A1}</ProjectGuid>
