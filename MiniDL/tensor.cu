@@ -31,23 +31,24 @@ public:
     }
 
     // Destructor (free GPU memory)
-    ~Tensor() {
+    ~Tensor() { 
+        //The tilde (~) before the class name defines the destructor. Every class can have one, and it’s invoked when the object’s lifetime ends.
         cudaFree(d_data);
     }
 };
 
 // Utility function to print tensor
-void printTensor(Tensor& t) {
-    float* h_data = new float[t.size];
+void printTensor(Tensor& t) {   // takes a reference to a Tensor object (t) as its parameter. 
+    float* h_data = new float[t.size];      // Dynamically allocates an array of floats on the host (CPU) with length equal to the tensor’s size.
 
-    t.toHost(h_data);
+    t.toHost(h_data);   // this method copies the tensor’s data from GPU memory (d_data) into the host array h_data
 
     for (int i = 0; i < t.size; i++) {
         cout << h_data[i] << " ";
     }
     cout << endl;
 
-    delete[] h_data;
+    delete[] h_data;    //Frees the dynamically allocated host array to avoid a memory leak.
 }
 
 // Test main
