@@ -11,10 +11,15 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="tensor.cu">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </CudaCompile>
-    <CudaCompile Include="tensor_2.cu" />
+    <CudaCompile Include="src\kernels.cu" />
+    <CudaCompile Include="src\linear_layer.cu" />
+    <CudaCompile Include="src\main.cu" />
+    <CudaCompile Include="src\tensor.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\kernels.h" />
+    <ClInclude Include="include\linear_layer.h" />
+    <ClInclude Include="include\tensor.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0967DC5D-0484-D433-29E8-FA7F460C95A1}</ProjectGuid>
@@ -47,6 +52,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(ProjectDir)\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -61,6 +67,7 @@
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
+      <Include>$(ProjectDir)\include;%(Include)</Include>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
