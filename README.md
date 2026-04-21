@@ -70,3 +70,9 @@ CUDA C++
 NVIDIA CUDA Toolkit
 (Optional) cuBLAS / cuDNN for benchmarking
 Nsight Systems / Nsight Compute (profiling)
+
+
+Structure:
+include/ → declarations (headers)
+src/ → implementations (.cu files)
+main.cu → only for testing / training loop
