@@ -17,4 +17,5 @@ public: //everything is accessible from outside the class
     void zero_grad();   // Sets gradient values to zero(befoe backpropagation)
 
     ~Tensor();  //destrcutor declaration
+    Tensor(const Tensor& other);  // Copy constructor
 };

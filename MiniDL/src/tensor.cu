@@ -16,6 +16,22 @@ Tensor::Tensor(int size, bool requires_grad) {
     }
 }
 
+Tensor::Tensor(const Tensor& other) {
+    size = other.size;
+    requires_grad = other.requires_grad;
+
+    cudaMalloc(&data, size * sizeof(float));
+    cudaMemcpy(data, other.data, size * sizeof(float), cudaMemcpyDeviceToDevice);
+
+    if (requires_grad) {
+        cudaMalloc(&grad, size * sizeof(float));
+        cudaMemcpy(grad, other.grad, size * sizeof(float), cudaMemcpyDeviceToDevice);
+    }
+    else {
+        grad = nullptr;
+    }
+}
+
 void Tensor::fromHost(float* h_data) {
     cudaMemcpy(data, h_data, size * sizeof(float), cudaMemcpyHostToDevice);
 }

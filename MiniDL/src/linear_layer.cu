@@ -1,6 +1,7 @@
 ﻿#include "linear_layer.h"
 #include "kernels.h"
 #include <cuda_runtime.h>
+#include<cstdio>
 
 //out-of-class defined constructor
 Linear::Linear(int in_f, int out_f) {
@@ -42,13 +43,16 @@ Tensor Linear::forward(Tensor& x, int batch_size) {
 
     dim3 threads(16, 16);
     //16 threads in X, 16 threads in Y
-    dim3 blocks((out_features + 15) / 16,
-        (batch_size + 15) / 16);
+    dim3 blocks(
+        (out_features + threads.x - 1) / threads.x,
+        (batch_size + threads.y - 1) / threads.y
+    );
     // computes how many blocks are needed
 
+    cudaMemset(out.data, 0, batch_size * out_features * sizeof(float));
 
     // Launch matrix multiplication Kernel
-    matmul << <blocks, threads >> > (
+    matmul <<<blocks, threads>>> (
         x.data, W->data, out.data,
         batch_size, out_features, in_features
         );
@@ -58,7 +62,7 @@ Tensor Linear::forward(Tensor& x, int batch_size) {
 
 
     // Launch bias addition Kernel
-    addBias << <blocks, threads >> > (
+    addBias <<<blocks, threads>>> (
         out.data, b->data,
         batch_size, out_features
         );
@@ -66,5 +70,10 @@ Tensor Linear::forward(Tensor& x, int batch_size) {
 
 
     cudaDeviceSynchronize();
+
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        printf("CUDA Error: %s\n", cudaGetErrorString(err));
+    }
     return out;
 }
