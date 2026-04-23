@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "tensor.h"
 
 class Linear {
@@ -27,4 +27,9 @@ public:     // Makes all following members accessible outside the class
 
     // Tensor& x: input tensor, batch_size x in_features
     //batch_size: number of input samples
+
+    Tensor backward(Tensor& d_out, int batch_size);
+    // Tensor& d_out: This is the gradient of the loss with respect to the layer’s output 
+    // (often called ∂L/∂𝑌).It comes from the next layer in the network during backpropagation.
+    // int batch_size: The number of samples in the batch. 
 };

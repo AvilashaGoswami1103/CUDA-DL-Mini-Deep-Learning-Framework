@@ -34,6 +34,8 @@ __global__ void addBias(float* C, float* b,
     }
 }
 
+// Gradients
+
 // FOR dW = XT.dY
 __global__ void matmul_backward_dW(float* X, float* dY, float* dW,
     int M, int N, int K) {
