@@ -76,3 +76,7 @@ Structure:
 include/ → declarations (headers)
 src/ → implementations (.cu files)
 main.cu → only for testing / training loop
+
+<img width="1119" height="435" alt="image" src="https://github.com/user-attachments/assets/c29f342c-ea81-4fe9-b801-096e09950305" />
+Fig 1: training loop output with MSE loss values included 
+
