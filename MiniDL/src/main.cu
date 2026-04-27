@@ -2,6 +2,7 @@
 #include "tensor.h"
 #include "linear_layer.h"
 #include "optimizer.h"
+#include "loss.h"
 
 using namespace std;
 
@@ -84,6 +85,8 @@ int main() {
     int epochs = 5;
     SGD optimizer(0.01f); // Creates an SGD optimizer with learning rate 0.01.
 
+    MSELoss loss_fn; //create once
+
     for (int epoch = 0; epoch < epochs; epoch++) {
 
         // Forward
@@ -94,15 +97,19 @@ int main() {
         out.toHost(h_out);
         //copy back to CPU
 
-        // Fake gradient
-        float h_dout[] = {
-            1, 1,
-            1, 1
+        // Target
+        float h_target[] = {
+                1, 1,
+                1, 1
         };
 
-        // copy to GPU tensor d_out
-        Tensor d_out(batch * out_f, false);
-        d_out.fromHost(h_dout);
+        // copy to GPU tensor target
+        Tensor target(batch * out_f, false);
+        target.fromHost(h_target);
+
+        // Loss
+        float loss = loss_fn.forward(out, target);
+        Tensor d_out = loss_fn.backward(out, target);
 
         // Backward
         Tensor dX = layer.backward(d_out, batch);
@@ -114,7 +121,7 @@ int main() {
         // Calls the SGD optimizer to update the weights and biases
       
 
-        cout << "Epoch " << epoch << " Output: ";
+        cout << "Epoch " << epoch << " Loss: " << loss << " Output: ";
         for (int i = 0; i < batch * out_f; i++)
             cout << h_out[i] << " ";
         cout << endl;
