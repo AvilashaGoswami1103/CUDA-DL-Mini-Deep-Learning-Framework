@@ -20,7 +20,13 @@ int main() {
     Tensor x(batch * in_f, false);
     x.fromHost(h_input);
 
-    Linear layer(in_f, out_f);
+    //Linear layer(in_f, out_f);
+    // implementing multi-layer (MLP)
+    int hidden_f = 4;   // hidden shape = 4 ( 4 per sample)
+
+    Linear layer1(in_f, hidden_f);
+    Linear layer2(hidden_f, out_f);
+
     ReLU relu;
 
     // 🔹 Debug input
@@ -31,60 +37,8 @@ int main() {
     for (int i = 0; i < 6; i++) cout << temp[i] << " ";
     cout << endl;
 
-   // // 🔹 Forward pass
-   // Tensor out = layer.forward(x, batch);
-
-   // // 🔹 Allocate BEFORE using
-   // float* h_out = new float[batch * out_f];
-
-   // out.toHost(h_out);
-
-   // cout << "Output: ";
-   // for (int i = 0; i < batch * out_f; i++) {
-   //     cout << h_out[i] << " ";
-   // }
-   // cout << endl;
-
-   // delete[] h_out;
-
-   // //Backpropagation test
-
-   // // Fake gradient (like loss gradient)
-   // float h_dout[] = {
-   //     1, 1,
-   //     1, 1
-   // };
-   // // this creates a small array on the host(CPU) called h_dout
-   // // simulating (∂L/∂Y) that would normally come from the loss function, just filled here for simplicity
-   // // Shape-wise: batch=2, out_f=2, 2x2 matrix flattened
-
-   // Tensor d_out(batch * out_f, false);
-   // // Allocate a Tensor object d_out on the device (GPU) with size batch × out_features
-   //
-   // d_out.fromHost(h_dout);
-
-   // // Run backward
-   // Tensor dX = layer.backward(d_out, batch);
-   // // Call the backward method of the layer (your Linear layer), runs the CUDA kernels for dW, db and dX.
-   //// The function returns dX (∂L/∂X), the gradient wrt the input.
-
-   // // Print dX
-   // float* h_dX = new float[batch * in_f];
-   // // Allocate a CPU array h_dX to hold the values of dX
-   // dX.toHost(h_dX);
-
-   // cout << "dX: ";
-   // for (int i = 0; i < batch * in_f; i++) {
-   //     cout << h_dX[i] << " ";
-   // }
-   // cout << endl;
-
-   // delete[] h_dX;
-
-   // return 0;
-
     // 🔥 ADD TRAINING LOOP HERE
-    int epochs = 5;
+    int epochs = 20;
     SGD optimizer(0.01f); // Creates an SGD optimizer with learning rate 0.01.
 
     MSELoss loss_fn; //create once
@@ -92,9 +46,10 @@ int main() {
     for (int epoch = 0; epoch < epochs; epoch++) {
 
         // Forward
-        Tensor linear_out = layer.forward(x, batch);
-        //runs forward pass: out=XW+b
-        Tensor out = relu.forward(linear_out);
+        Tensor h1 = layer1.forward(x, batch);
+        Tensor a1 = relu.forward(h1);
+        Tensor out = layer2.forward(a1, batch);
+        // Input → hidden representation → output
 
         float* h_out = new float[batch * out_f];
         out.toHost(h_out);
@@ -115,12 +70,19 @@ int main() {
         Tensor d_out = loss_fn.backward(out, target);
 
         // Backward
-        Tensor dX = layer.backward(d_out, batch);
-        //runs backward pass, Computes gradients wrt weights (dW), bias (db), and input (dX)
+        // Backward through layer2
+        Tensor d_hidden = layer2.backward(d_out, batch);
+        // Backward through ReLU
+        Tensor d_relu = relu.backward(d_hidden);
+        // Backward through layer1
+        Tensor dX = layer1.backward(d_relu, batch);
 
         // Update
-        optimizer.step(layer.W);
-        optimizer.step(layer.b);
+        optimizer.step(layer1.W);
+        optimizer.step(layer1.b);
+
+        optimizer.step(layer2.W);
+        optimizer.step(layer2.b);
         // Calls the SGD optimizer to update the weights and biases
       
 
