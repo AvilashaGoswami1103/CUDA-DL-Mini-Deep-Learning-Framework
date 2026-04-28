@@ -80,3 +80,7 @@ main.cu → only for testing / training loop
 <img width="1119" height="435" alt="image" src="https://github.com/user-attachments/assets/c29f342c-ea81-4fe9-b801-096e09950305" />
 Fig 1: training loop output with MSE loss values included 
 
+<img width="1112" height="420" alt="image" src="https://github.com/user-attachments/assets/49fbe8e0-01f4-4f72-8a6a-825369d4a0e6" />
+Fig 2: training loop output with linear -> ReLU layers
+
+
