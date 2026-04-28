@@ -80,7 +80,9 @@ main.cu → only for testing / training loop
 <img width="1119" height="435" alt="image" src="https://github.com/user-attachments/assets/c29f342c-ea81-4fe9-b801-096e09950305" />
 Fig 1: training loop output with MSE loss values included 
 
-<img width="1112" height="420" alt="image" src="https://github.com/user-attachments/assets/49fbe8e0-01f4-4f72-8a6a-825369d4a0e6" />
-Fig 2: training loop output with linear -> ReLU layers
+<img width="1103" height="621" alt="image" src="https://github.com/user-attachments/assets/39d5a365-d3ae-472a-aa78-34130f6e38df" />      <img width="1109" height="617" alt="image" src="https://github.com/user-attachments/assets/990fa919-ea00-49a7-8694-30ed7a9c0823" />
+Fig 2: Training loop output for Input->Linear->ReLU->Linear layers with loss included: displays consistently decreasing loss and increasing output values
+
+
 
 
