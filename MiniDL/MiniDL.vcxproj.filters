@@ -7,6 +7,7 @@
     <CudaCompile Include="src\main.cu" />
     <CudaCompile Include="src\optimizer.cu" />
     <CudaCompile Include="src\loss.cu" />
+    <CudaCompile Include="src\relu.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\tensor.h" />
@@ -14,5 +15,6 @@
     <ClInclude Include="include\linear_layer.h" />
     <ClInclude Include="include\optimizer.h" />
     <ClInclude Include="include\loss.h" />
+    <ClInclude Include="include\ReLU.h" />
   </ItemGroup>
 </Project>

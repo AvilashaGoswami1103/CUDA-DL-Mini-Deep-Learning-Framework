@@ -3,6 +3,7 @@
 #include "linear_layer.h"
 #include "optimizer.h"
 #include "loss.h"
+#include "relu.h"
 
 using namespace std;
 
@@ -20,6 +21,7 @@ int main() {
     x.fromHost(h_input);
 
     Linear layer(in_f, out_f);
+    ReLU relu;
 
     // 🔹 Debug input
     float temp[6];
@@ -90,8 +92,9 @@ int main() {
     for (int epoch = 0; epoch < epochs; epoch++) {
 
         // Forward
-        Tensor out = layer.forward(x, batch);
+        Tensor linear_out = layer.forward(x, batch);
         //runs forward pass: out=XW+b
+        Tensor out = relu.forward(linear_out);
 
         float* h_out = new float[batch * out_f];
         out.toHost(h_out);
