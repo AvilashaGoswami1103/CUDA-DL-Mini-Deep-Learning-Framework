@@ -2,6 +2,8 @@
 #include "kernels.h"
 #include <cuda_runtime.h>
 #include<cstdio>
+#include <cstdlib>
+#include <ctime>
 
 //out-of-class defined constructor
 Linear::Linear(int in_f, int out_f) {
@@ -17,9 +19,11 @@ Linear::Linear(int in_f, int out_f) {
     float* h_b = new float[out_f];
     // Allocates CPU memory for the bias vector
 
+    srand(time(0));
+
     for (int i = 0; i < in_f * out_f; i++)
-        h_W[i] = 0.01f;
-    //initializing all weights to 0.01
+        h_W[i] = ((float)rand() / RAND_MAX - 0.5f) * 0.1f;
+    //Random weight initialization
 
     for (int i = 0; i < out_f; i++)
         h_b[i] = 0.0f;

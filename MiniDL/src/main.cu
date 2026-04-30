@@ -4,6 +4,8 @@
 #include "optimizer.h"
 #include "loss.h"
 #include "relu.h"
+#include "softmax.h"
+#include "cross_entropy.h"
 
 using namespace std;
 
@@ -28,6 +30,8 @@ int main() {
     Linear layer2(hidden_f, out_f);
 
     ReLU relu;
+    Softmax softmax;
+    CrossEntropyLoss loss_fn;
 
     // 🔹 Debug input
     float temp[6];
@@ -41,14 +45,18 @@ int main() {
     int epochs = 20;
     SGD optimizer(0.01f); // Creates an SGD optimizer with learning rate 0.01.
 
-    MSELoss loss_fn; //create once
-
     for (int epoch = 0; epoch < epochs; epoch++) {
 
         // Forward
         Tensor h1 = layer1.forward(x, batch);
         Tensor a1 = relu.forward(h1);
-        Tensor out = layer2.forward(a1, batch);
+        Tensor logits = layer2.forward(a1, batch);
+
+        Tensor out = softmax.forward(
+            logits,
+            batch,
+            out_f
+        );
         // Input → hidden representation → output
 
         float* h_out = new float[batch * out_f];
@@ -56,17 +64,26 @@ int main() {
         //copy back to CPU
 
         // Target
+        // using one-hot targets
         float h_target[] = {
-                1, 1,
-                1, 1
+                1, 0,
+                0, 1
         };
+        // Meaning: sample 1 -> class 0
+        // Meaning: sample 2 -> class 1
 
         // copy to GPU tensor target
         Tensor target(batch * out_f, false);
         target.fromHost(h_target);
 
-        // Loss
-        float loss = loss_fn.forward(out, target);
+        // MSE Loss
+        float loss = loss_fn.forward(
+            out,
+            target,
+            batch,
+            out_f
+        );
+
         Tensor d_out = loss_fn.backward(out, target);
 
         // Backward

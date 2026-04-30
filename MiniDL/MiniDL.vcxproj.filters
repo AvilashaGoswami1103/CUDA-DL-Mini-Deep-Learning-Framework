@@ -8,6 +8,8 @@
     <CudaCompile Include="src\optimizer.cu" />
     <CudaCompile Include="src\loss.cu" />
     <CudaCompile Include="src\relu.cu" />
+    <CudaCompile Include="src\softmax.cu" />
+    <CudaCompile Include="src\cross_entropy.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\tensor.h" />
@@ -16,5 +18,7 @@
     <ClInclude Include="include\optimizer.h" />
     <ClInclude Include="include\loss.h" />
     <ClInclude Include="include\ReLU.h" />
+    <ClInclude Include="include\softmax.h" />
+    <ClInclude Include="include\cross_entropy.h" />
   </ItemGroup>
 </Project>

@@ -11,20 +11,24 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="src\cross_entropy.cu" />
     <CudaCompile Include="src\kernels.cu" />
     <CudaCompile Include="src\linear_layer.cu" />
     <CudaCompile Include="src\loss.cu" />
     <CudaCompile Include="src\main.cu" />
     <CudaCompile Include="src\optimizer.cu" />
     <CudaCompile Include="src\relu.cu" />
+    <CudaCompile Include="src\softmax.cu" />
     <CudaCompile Include="src\tensor.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\cross_entropy.h" />
     <ClInclude Include="include\kernels.h" />
     <ClInclude Include="include\linear_layer.h" />
     <ClInclude Include="include\loss.h" />
     <ClInclude Include="include\optimizer.h" />
     <ClInclude Include="include\ReLU.h" />
+    <ClInclude Include="include\softmax.h" />
     <ClInclude Include="include\tensor.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
