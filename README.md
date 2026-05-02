@@ -83,6 +83,29 @@ Fig 1: training loop output with MSE loss values included
 <img width="1103" height="621" alt="image" src="https://github.com/user-attachments/assets/39d5a365-d3ae-472a-aa78-34130f6e38df" />      <img width="1109" height="617" alt="image" src="https://github.com/user-attachments/assets/990fa919-ea00-49a7-8694-30ed7a9c0823" />
 Fig 2: Training loop output for Input->Linear->ReLU->Linear layers with loss included: displays consistently decreasing loss and increasing output values
 
+<img width="977" height="623" alt="image" src="https://github.com/user-attachments/assets/c84aab60-7649-46c8-8830-b3ca8a65d8b3" />
+<img width="1099" height="620" alt="image" src="https://github.com/user-attachments/assets/f5ddb53a-c888-4484-9d52-9a6b8db85a14" />
+Fig 3: Training loop output with softmax and cross entropy included, and random weight initialization included in linear layer -> faster error decrease and fster increasing output values.
+
+MODEL ABSTRACTION:
+Instead of writing layers manually like:
+Tensor h1 = layer1.forward(x);
+Tensor a1 = relu.forward(h1);
+Tensor out = layer2.forward(a1);
+
+we implement Sequential API Style like:
+model.add(layer1);
+model.add(relu);
+model.add(layer2);
+Tensor out = model.forward(x);
+
+The framework then manages:
+Layer ordering
+Forward propagation
+Backward propagation
+
+
+
 
 
 
