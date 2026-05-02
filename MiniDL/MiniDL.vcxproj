@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -24,6 +24,7 @@
   <ItemGroup>
     <ClInclude Include="include\cross_entropy.h" />
     <ClInclude Include="include\kernels.h" />
+    <ClInclude Include="include\layer.h" />
     <ClInclude Include="include\linear_layer.h" />
     <ClInclude Include="include\loss.h" />
     <ClInclude Include="include\optimizer.h" />

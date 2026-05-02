@@ -66,3 +66,9 @@ Tensor Softmax::forward(Tensor& x,
 
     return out;
 }
+
+Tensor Softmax::backward(Tensor& grad,
+    int batch_size) {
+
+    return grad;
+}

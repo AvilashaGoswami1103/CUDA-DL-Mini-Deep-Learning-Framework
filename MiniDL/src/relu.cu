@@ -33,7 +33,7 @@ __global__ void relu_backward_kernel(float* input, float* d_out, float* d_input,
     // If input ≤ 0 → gradient is 0 (ReLU blocks it).
 }
 
-Tensor ReLU::forward(Tensor& x) {   // implement forward pass in the ReLU class
+Tensor ReLU::forward(Tensor& x, int batch_size) {   // implement forward pass in the ReLU class
 
     input = &x; // stores pointer to the input tensor
 
@@ -54,7 +54,7 @@ Tensor ReLU::forward(Tensor& x) {   // implement forward pass in the ReLU class
     return out;
 }
 
-Tensor ReLU::backward(Tensor& d_out) {  // implements backward pass in the ReLU class
+Tensor ReLU::backward(Tensor& d_out, int batch_size) {  // implements backward pass in the ReLU class
 
     Tensor d_input(d_out.size, false);  // creates a tensor to store gradients wrt input
 

@@ -1,7 +1,8 @@
 ﻿#pragma once
 #include "tensor.h"
+# include "layer.h"
 
-class Linear {
+class Linear : public Layer {
 public:     // Makes all following members accessible outside the class
     int in_features, out_features;
     // Number of input features (columns of input matrix)
@@ -21,7 +22,7 @@ public:     // Makes all following members accessible outside the class
     Linear(int in_f, int out_f);    // Linear Layer
 
     // Forward Pass
-    Tensor forward(Tensor& x, int batch_size);
+    Tensor forward(Tensor& x, int batch_size) override;
     // Performs forward pass of the linear layer
     // Output = x x W+ b
 
