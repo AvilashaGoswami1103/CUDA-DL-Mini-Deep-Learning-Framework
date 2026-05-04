@@ -18,6 +18,7 @@
     <CudaCompile Include="src\main.cu" />
     <CudaCompile Include="src\optimizer.cu" />
     <CudaCompile Include="src\relu.cu" />
+    <CudaCompile Include="src\sequential.cu" />
     <CudaCompile Include="src\softmax.cu" />
     <CudaCompile Include="src\tensor.cu" />
   </ItemGroup>
@@ -29,6 +30,7 @@
     <ClInclude Include="include\loss.h" />
     <ClInclude Include="include\optimizer.h" />
     <ClInclude Include="include\ReLU.h" />
+    <ClInclude Include="include\sequential.h" />
     <ClInclude Include="include\softmax.h" />
     <ClInclude Include="include\tensor.h" />
   </ItemGroup>

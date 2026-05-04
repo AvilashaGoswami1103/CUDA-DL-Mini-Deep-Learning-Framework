@@ -10,6 +10,7 @@
     <CudaCompile Include="src\relu.cu" />
     <CudaCompile Include="src\softmax.cu" />
     <CudaCompile Include="src\cross_entropy.cu" />
+    <CudaCompile Include="src\sequential.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\tensor.h" />
@@ -20,5 +21,7 @@
     <ClInclude Include="include\ReLU.h" />
     <ClInclude Include="include\softmax.h" />
     <ClInclude Include="include\cross_entropy.h" />
+    <ClInclude Include="include\layer.h" />
+    <ClInclude Include="include\sequential.h" />
   </ItemGroup>
 </Project>

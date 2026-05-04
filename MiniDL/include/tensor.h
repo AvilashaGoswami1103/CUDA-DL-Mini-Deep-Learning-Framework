@@ -1,4 +1,4 @@
-#pragma once    
+﻿#pragma once    
 //Ensures this header file is included only once per compilation unit, prevents multiple definition errors
 #include <cuda_runtime.h>
 
@@ -9,8 +9,10 @@ public: //everything is accessible from outside the class
     int size;
     bool requires_grad; //Indicates whether gradients should be computed
 
+    // ✅ ONLY DECLARE
     Tensor(int size, bool requires_grad = false);
-    //constructor declaration
+    Tensor(const Tensor& other);
+
 
     void fromHost(float* h_data);   //CPU->GPU
     void toHost(float* h_data);     //gpu->cpu

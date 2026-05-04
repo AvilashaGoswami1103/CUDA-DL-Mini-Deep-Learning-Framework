@@ -7,9 +7,7 @@ public:
 
     Tensor* input;
 
-    Tensor forward(Tensor& x,
-        int batch_size = 0) override;
+    Tensor forward(Tensor& x, int batch_size = 0) override;
 
-    Tensor backward(Tensor& d_out,
-        int batch_size = 0) override;
+    Tensor backward(Tensor& d_out, int batch_size = 0) override;
 };

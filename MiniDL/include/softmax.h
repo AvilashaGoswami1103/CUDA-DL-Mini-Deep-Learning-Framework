@@ -1,11 +1,13 @@
 #pragma once
 #include "tensor.h"
 
-
 class Softmax {
 public:
-    Tensor* output;
+    int num_classes;
 
-    Tensor forward(Tensor& x, int batch_size, int num_classes);
-    Tensor backward(Tensor& grad, int batch_size = 0) override;
+    Softmax(int num_classes) : num_classes(num_classes) {}
+
+    Tensor forward(Tensor& x, int batch_size);
+
+    Tensor backward(Tensor& grad, int batch_size = 0);
 };

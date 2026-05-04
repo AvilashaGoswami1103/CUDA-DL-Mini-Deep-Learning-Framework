@@ -23,7 +23,7 @@ Tensor::Tensor(const Tensor& other) {
     cudaMalloc(&data, size * sizeof(float));
     cudaMemcpy(data, other.data, size * sizeof(float), cudaMemcpyDeviceToDevice);
 
-    if (requires_grad) {
+    if (requires_grad && other.grad != nullptr) {
         cudaMalloc(&grad, size * sizeof(float));
         cudaMemcpy(grad, other.grad, size * sizeof(float), cudaMemcpyDeviceToDevice);
     }

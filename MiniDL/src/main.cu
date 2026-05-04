@@ -6,6 +6,7 @@
 #include "relu.h"
 #include "softmax.h"
 #include "cross_entropy.h"
+#include "sequential.h"
 
 using namespace std;
 
@@ -27,10 +28,16 @@ int main() {
     int hidden_f = 4;   // hidden shape = 4 ( 4 per sample)
 
     Linear layer1(in_f, hidden_f);
+    ReLU relu;
     Linear layer2(hidden_f, out_f);
 
-    ReLU relu;
-    Softmax softmax;
+    Sequential model;
+
+    model.add(&layer1);
+    model.add(&relu);
+    model.add(&layer2);
+
+    Softmax softmax (out_f);
     CrossEntropyLoss loss_fn;
 
     // 🔹 Debug input
@@ -47,15 +54,17 @@ int main() {
 
     for (int epoch = 0; epoch < epochs; epoch++) {
 
+        layer1.W->zero_grad();
+        layer1.b->zero_grad();
+        layer2.W->zero_grad();
+        layer2.b->zero_grad();
+
         // Forward
-        Tensor h1 = layer1.forward(x, batch);
-        Tensor a1 = relu.forward(h1);
-        Tensor logits = layer2.forward(a1, batch);
+        Tensor logits = model.forward(x, batch);
 
         Tensor out = softmax.forward(
             logits,
-            batch,
-            out_f
+            batch
         );
         // Input → hidden representation → output
 
@@ -87,12 +96,7 @@ int main() {
         Tensor d_out = loss_fn.backward(out, target);
 
         // Backward
-        // Backward through layer2
-        Tensor d_hidden = layer2.backward(d_out, batch);
-        // Backward through ReLU
-        Tensor d_relu = relu.backward(d_hidden);
-        // Backward through layer1
-        Tensor dX = layer1.backward(d_relu, batch);
+        Tensor dX = model.backward(d_out, batch);
 
         // Update
         optimizer.step(layer1.W);
