@@ -14,7 +14,7 @@ public:
     // num_classes : number of possible classes.
 
     Tensor backward(Tensor& pred,
-        Tensor& target);
+        Tensor& target, int batch_size);
     // Parameters:
     // pred: predictions(same as forward).
     // target : ground - truth labels.

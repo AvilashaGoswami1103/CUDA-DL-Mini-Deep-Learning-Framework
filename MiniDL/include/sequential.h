@@ -11,6 +11,7 @@ public:
     // Stores all layers dynamically: [Linear → ReLU → Linear]
     // This is the core data structure holding the ordered list of layers in the network.
     // Using pointers allows polymorphism(different types of layers can be stored in the same vector).
+
     void add(Layer* layer);
 
     // takes a pointer to a Layer and adds it to the layers vector
