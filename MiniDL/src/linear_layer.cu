@@ -30,8 +30,18 @@ Linear::Linear(int in_f, int out_f) {
     delete[] h_b;
 }
 
+Linear::~Linear() {
+    delete W;
+    delete b;
+    if (input) delete input;
+}
+
 Tensor Linear::forward(Tensor& x, int batch_size) {
-    input = &x;
+    if (input != nullptr) {
+        delete input;
+        input = nullptr;
+    }
+    input = new Tensor(x);
 
     Tensor out(batch_size * out_features, true);
 

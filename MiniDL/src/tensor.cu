@@ -32,6 +32,41 @@ Tensor::Tensor(const Tensor& other) {
     }
 }
 
+// Move constructor
+Tensor::Tensor(Tensor&& other) noexcept {
+    size = other.size;
+    requires_grad = other.requires_grad;
+    data = other.data;
+    grad = other.grad;
+
+    // Nullify the source so its destructor doesn't free the memory
+    other.data = nullptr;
+    other.grad = nullptr;
+    other.size = 0;
+}
+
+// Move assignment operator
+Tensor& Tensor::operator=(Tensor&& other) noexcept {
+    if (this == &other) return *this;
+
+    // Free current memory
+    cudaFree(data);
+    if (grad) cudaFree(grad);
+
+    // Transfer ownership
+    size = other.size;
+    requires_grad = other.requires_grad;
+    data = other.data;
+    grad = other.grad;
+
+    // Nullify source
+    other.data = nullptr;
+    other.grad = nullptr;
+    other.size = 0;
+
+    return *this;
+}
+
 void Tensor::fromHost(float* h_data) {
     cudaMemcpy(data, h_data, size * sizeof(float), cudaMemcpyHostToDevice);
 }

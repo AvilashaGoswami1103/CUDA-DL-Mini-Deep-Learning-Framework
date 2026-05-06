@@ -16,10 +16,11 @@ public:     // Makes all following members accessible outside the class
     Tensor* b;
     // Pointer to a Tensor holding the bias vector: shape: b: out_features
 
-    Tensor* input;
+    Tensor* input = nullptr;
     // Stores a pointer to the input tensor passed to forward
 
     Linear(int in_f, int out_f);    // Linear Layer
+    ~Linear();
 
     // Forward Pass
     Tensor forward(Tensor& x, int batch_size) override;

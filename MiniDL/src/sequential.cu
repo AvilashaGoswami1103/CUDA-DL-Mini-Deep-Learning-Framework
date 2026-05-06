@@ -9,22 +9,34 @@ void Sequential::add(Layer* layer) {    // Sequential::add means this function b
 
 Tensor Sequential::forward(Tensor& x, int batch_size) {
 
-    Tensor out = x;   // start from input
+    Tensor* current = &x;
+    Tensor* owned = nullptr;
 
     for (auto layer : layers) {
-        out = layer->forward(out, batch_size);
+        Tensor* next = new Tensor(layer->forward(*current, batch_size));
+        if (owned) delete owned;
+        owned = next;
+        current = owned;
     }
 
-    return out;
+    Tensor result(*current);  // final copy
+    if (owned) delete owned;
+    return result;
 }
 
 Tensor Sequential::backward(Tensor& grad, int batch_size) {
-
-    Tensor d = grad;
+    Tensor* current = &grad;
+    Tensor* owned = nullptr;
 
     for (int i = layers.size() - 1; i >= 0; i--) {
-        d = layers[i]->backward(d, batch_size);
+        Tensor* next = new Tensor(layers[i]->backward(*current, batch_size));
+        if (owned) delete owned;
+        owned = next;
+        current = owned;
     }
 
-    return d;
+    Tensor result(*current);
+    if (owned) delete owned;
+    return result;
+    
 }

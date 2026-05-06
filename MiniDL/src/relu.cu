@@ -15,8 +15,16 @@ __global__ void relu_backward_kernel(float* input, float* d_out, float* d_input,
     }
 }
 
+ReLU::~ReLU() {
+    if (input) delete input;
+}
+
 Tensor ReLU::forward(Tensor& x, int batch_size) {
-    input = &x;
+    if (input != nullptr) {
+        delete input;
+        input = nullptr;
+    }
+    input = new Tensor(x);   // owns its own GPU copy
 
     Tensor out(x.size, false);
 
