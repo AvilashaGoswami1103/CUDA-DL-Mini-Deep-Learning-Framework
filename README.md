@@ -104,6 +104,21 @@ Layer ordering
 Forward propagation
 Backward propagation
 
+Modular Deep Learning Architecture implemented with sequential container:
+Sequential model;
+
+model.add(&layer1);
+model.add(&relu);
+model.add(&layer2);
+This creates the container and registers layers inside it.
+
+The Sequential container acts as a Layer execution pipeline manager
+It automates:
+
+Forward propagation
+Backward propagation
+Layer ordering
+
 
 
 
