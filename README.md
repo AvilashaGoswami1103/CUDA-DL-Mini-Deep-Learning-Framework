@@ -119,6 +119,12 @@ Forward propagation
 Backward propagation
 Layer ordering
 
+Tensor Safety Upgrade:
+When copying tensors, instead of shallow pointer copy like a=b, we implement:
+Tensor& operator=(const Tensor& other) -> which allocates NEW GPU memory, copies GPU contents safely and avoids double free, also safe memory cleanup.
+
+
+
 
 
 
