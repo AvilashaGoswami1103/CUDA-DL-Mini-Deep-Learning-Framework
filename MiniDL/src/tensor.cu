@@ -4,6 +4,7 @@
 Tensor::Tensor(int size, bool requires_grad) {
     this->size = size;
     this->requires_grad = requires_grad;
+    creator = nullptr;
 
     cudaMalloc(&data, size * sizeof(float));
 
@@ -14,6 +15,55 @@ Tensor::Tensor(int size, bool requires_grad) {
     else {
         grad = nullptr;
     }
+}
+
+Tensor& Tensor::operator=(const Tensor& other) {
+
+    // Prevent self-assignment
+    if (this == &other)
+        return *this;   // handles a=a; correctly
+
+    // Free existing memory
+    if (data)
+        cudaFree(data);
+
+    if (grad)
+        cudaFree(grad);
+
+    // Copy metadata
+    size = other.size;
+    requires_grad = other.requires_grad;
+
+    // Allocate new GPU memory
+    cudaMalloc(&data, size * sizeof(float));
+    // now tensor owns its own memory
+
+    // Copy tensor data
+    cudaMemcpy(
+        data,
+        other.data,
+        size * sizeof(float),
+        cudaMemcpyDeviceToDevice
+    );
+    // copy CPU -> GPU
+
+    // Copy gradients if needed
+    if (requires_grad && other.grad != nullptr) {
+
+        cudaMalloc(&grad, size * sizeof(float));
+
+        cudaMemcpy(
+            grad,
+            other.grad,
+            size * sizeof(float),
+            cudaMemcpyDeviceToDevice
+        );
+    }
+    else {
+        grad = nullptr;
+    }
+
+    return *this;
 }
 
 Tensor::Tensor(const Tensor& other) {
@@ -79,6 +129,17 @@ void Tensor::zero_grad() {
     if (requires_grad) {
         cudaMemset(grad, 0, size * sizeof(float));
     }
+}
+
+Tensor Tensor::backward(Tensor& grad, int batch_size) {
+
+    // If tensor has no creator, stop recursion
+    if (creator == nullptr) {
+        return grad;
+    }
+
+    // Call backward of creator layer
+    return creator->backward(grad, batch_size);
 }
 
 Tensor::~Tensor() {

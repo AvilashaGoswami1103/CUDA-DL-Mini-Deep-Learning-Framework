@@ -44,6 +44,7 @@ Tensor Linear::forward(Tensor& x, int batch_size) {
     input = new Tensor(x);
 
     Tensor out(batch_size * out_features, true);
+    out.creator = this;
 
     dim3 threads(16, 16);
     dim3 blocks(
