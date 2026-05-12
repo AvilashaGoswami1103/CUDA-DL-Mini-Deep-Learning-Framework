@@ -1,7 +1,8 @@
 #pragma once
 #include "tensor.h"
+#include "layer.h"
 
-class Softmax {
+class Softmax : public Layer {
 public:
     int num_classes;
 

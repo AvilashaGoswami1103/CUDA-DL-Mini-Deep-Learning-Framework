@@ -98,8 +98,8 @@ int main() {
         Tensor d_out = loss_fn.backward(out, target, batch);
 
         // 🔹 Backward
-        Tensor dX = logits.backward(d_out, batch);
-        #model
+        Tensor dX = model.backward(d_out, batch);
+        // model
 
         // 🔹 Update
         optimizer.step(layer1.W);

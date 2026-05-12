@@ -27,6 +27,7 @@ Tensor ReLU::forward(Tensor& x, int batch_size) {
     input = new Tensor(x);   // owns its own GPU copy
 
     Tensor out(x.size, false);
+    out.creator = this;
 
     int threads = 256;
     int blocks = (x.size + threads - 1) / threads;

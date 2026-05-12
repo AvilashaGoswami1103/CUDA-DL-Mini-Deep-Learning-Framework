@@ -30,6 +30,7 @@ __global__ void softmax_kernel(float* input,
 Tensor Softmax::forward(Tensor& x, int batch_size) {
 
     Tensor out(x.size, false);
+    out.creator = this;
 
     softmax_kernel << <batch_size, 1 >> > (
         x.data,

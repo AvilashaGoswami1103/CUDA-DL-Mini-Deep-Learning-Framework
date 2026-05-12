@@ -1,4 +1,5 @@
 #include "tensor.h"
+#include "layer.h"
 #include <cuda_runtime.h>
 
 Tensor::Tensor(int size, bool requires_grad) {
@@ -69,6 +70,7 @@ Tensor& Tensor::operator=(const Tensor& other) {
 Tensor::Tensor(const Tensor& other) {
     size = other.size;
     requires_grad = other.requires_grad;
+    creator = other.creator;
 
     cudaMalloc(&data, size * sizeof(float));
     cudaMemcpy(data, other.data, size * sizeof(float), cudaMemcpyDeviceToDevice);
@@ -131,16 +133,16 @@ void Tensor::zero_grad() {
     }
 }
 
-Tensor Tensor::backward(Tensor& grad, int batch_size) {
-
-    // If tensor has no creator, stop recursion
-    if (creator == nullptr) {
-        return grad;
-    }
-
-    // Call backward of creator layer
-    return creator->backward(grad, batch_size);
-}
+//Tensor Tensor::backward(Tensor& grad, int batch_size) {
+//
+//    // If tensor has no creator, stop recursion
+//    if (creator == nullptr) {
+//        return grad;
+//    }
+//
+//    // Call backward of creator layer
+//    return creator->backward(grad, batch_size);
+//}
 
 Tensor::~Tensor() {
     cudaFree(data);
