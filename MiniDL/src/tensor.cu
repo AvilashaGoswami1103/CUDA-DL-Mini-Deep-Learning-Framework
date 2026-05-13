@@ -6,6 +6,7 @@ Tensor::Tensor(int size, bool requires_grad) {
     this->size = size;
     this->requires_grad = requires_grad;
     creator = nullptr;
+    prev = nullptr;
 
     cudaMalloc(&data, size * sizeof(float));
 
@@ -18,11 +19,13 @@ Tensor::Tensor(int size, bool requires_grad) {
     }
 }
 
+// Copy constructor
 Tensor::Tensor(const Tensor& other) {
 
     size = other.size;
     requires_grad = other.requires_grad;
     creator = other.creator;
+    prev = other.prev;
 
     cudaMalloc(&data, size * sizeof(float));
     cudaMemcpy(data,
@@ -44,7 +47,7 @@ Tensor::Tensor(const Tensor& other) {
     }
 }
 
-//Copy constructor
+//Copy assignment
 Tensor& Tensor::operator=(const Tensor& other) {
 
     if (this != &other) {
@@ -55,6 +58,7 @@ Tensor& Tensor::operator=(const Tensor& other) {
         size = other.size;
         requires_grad = other.requires_grad;
         creator = other.creator;
+        prev = other.prev;
 
         cudaMalloc(&data, size * sizeof(float));
 
@@ -89,6 +93,7 @@ Tensor::Tensor(Tensor&& other) noexcept {
     size = other.size;
     requires_grad = other.requires_grad;
     creator = other.creator;
+    prev = other.prev;
 
     other.data = nullptr;
     other.grad = nullptr;
@@ -108,6 +113,7 @@ Tensor& Tensor::operator=(Tensor&& other) noexcept {
         size = other.size;
         requires_grad = other.requires_grad;
         creator = other.creator;
+        prev = other.prev;
 
         other.data = nullptr;
         other.grad = nullptr;
@@ -149,3 +155,4 @@ Tensor::~Tensor() {
     if (grad)
         cudaFree(grad);
 }
+

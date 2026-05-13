@@ -9,6 +9,7 @@ public:
     int size;
     bool requires_grad;
     Layer* creator;
+    Layer* prev;
 
     // ✅ ONLY DECLARE
     Tensor(int size, bool requires_grad = false);
