@@ -12,16 +12,16 @@ public:
 
     // ✅ ONLY DECLARE
     Tensor(int size, bool requires_grad = false);
+    Tensor(const Tensor& other);    // copy constructor
     Tensor& operator=(const Tensor& other);  // Safe Tensor Copy Assignment
-    Tensor(const Tensor& other);
-    Tensor(Tensor&& other) noexcept;
-    Tensor& operator=(Tensor&& other) noexcept;
+    Tensor(Tensor&& other) noexcept;    // move constructor
+    Tensor& operator=(Tensor&& other) noexcept;   // move assignment
 
 
     void fromHost(float* h_data);
     void toHost(float* h_data);
     void zero_grad();
-    Tensor backward(Tensor& grad, int batch_size = 0);
+    //Tensor backward(Tensor& grad, int batch_size = 0);
 
     ~Tensor();
 };

@@ -18,103 +18,100 @@ Tensor::Tensor(int size, bool requires_grad) {
     }
 }
 
-Tensor& Tensor::operator=(const Tensor& other) {
-
-    // Prevent self-assignment
-    if (this == &other)
-        return *this;   // handles a=a; correctly
-
-    // Free existing memory
-    if (data)
-        cudaFree(data);
-
-    if (grad)
-        cudaFree(grad);
-
-    // Copy metadata
-    size = other.size;
-    requires_grad = other.requires_grad;
-
-    // Allocate new GPU memory
-    cudaMalloc(&data, size * sizeof(float));
-    // now tensor owns its own memory
-
-    // Copy tensor data
-    cudaMemcpy(
-        data,
-        other.data,
-        size * sizeof(float),
-        cudaMemcpyDeviceToDevice
-    );
-    // copy CPU -> GPU
-
-    // Copy gradients if needed
-    if (requires_grad && other.grad != nullptr) {
-
-        cudaMalloc(&grad, size * sizeof(float));
-
-        cudaMemcpy(
-            grad,
-            other.grad,
-            size * sizeof(float),
-            cudaMemcpyDeviceToDevice
-        );
-    }
-    else {
-        grad = nullptr;
-    }
-
-    return *this;
-}
-
 Tensor::Tensor(const Tensor& other) {
+
     size = other.size;
     requires_grad = other.requires_grad;
     creator = other.creator;
 
     cudaMalloc(&data, size * sizeof(float));
-    cudaMemcpy(data, other.data, size * sizeof(float), cudaMemcpyDeviceToDevice);
+    cudaMemcpy(data,
+        other.data,
+        size * sizeof(float),
+        cudaMemcpyDeviceToDevice);
 
-    if (requires_grad && other.grad != nullptr) {
+    if (requires_grad) {
+
         cudaMalloc(&grad, size * sizeof(float));
-        cudaMemcpy(grad, other.grad, size * sizeof(float), cudaMemcpyDeviceToDevice);
+
+        cudaMemcpy(grad,
+            other.grad,
+            size * sizeof(float),
+            cudaMemcpyDeviceToDevice);
     }
     else {
         grad = nullptr;
     }
 }
 
-// Move constructor
-Tensor::Tensor(Tensor&& other) noexcept {
-    size = other.size;
-    requires_grad = other.requires_grad;
-    data = other.data;
-    grad = other.grad;
+//Copy constructor
+Tensor& Tensor::operator=(const Tensor& other) {
 
-    // Nullify the source so its destructor doesn't free the memory
-    other.data = nullptr;
-    other.grad = nullptr;
-    other.size = 0;
+    if (this != &other) {
+
+        if (data) cudaFree(data);
+        if (grad) cudaFree(grad);
+
+        size = other.size;
+        requires_grad = other.requires_grad;
+        creator = other.creator;
+
+        cudaMalloc(&data, size * sizeof(float));
+
+        cudaMemcpy(data,
+            other.data,
+            size * sizeof(float),
+            cudaMemcpyDeviceToDevice);
+
+        if (requires_grad) {
+
+            cudaMalloc(&grad, size * sizeof(float));
+
+            cudaMemcpy(grad,
+                other.grad,
+                size * sizeof(float),
+                cudaMemcpyDeviceToDevice);
+        }
+        else {
+            grad = nullptr;
+        }
+    }
+
+    return *this;
 }
 
-// Move assignment operator
-Tensor& Tensor::operator=(Tensor&& other) noexcept {
-    if (this == &other) return *this;
+// Move constructor
+Tensor::Tensor(Tensor&& other) noexcept {
 
-    // Free current memory
-    cudaFree(data);
-    if (grad) cudaFree(grad);
-
-    // Transfer ownership
-    size = other.size;
-    requires_grad = other.requires_grad;
     data = other.data;
     grad = other.grad;
 
-    // Nullify source
+    size = other.size;
+    requires_grad = other.requires_grad;
+    creator = other.creator;
+
     other.data = nullptr;
     other.grad = nullptr;
-    other.size = 0;
+}
+
+// Move assignment
+Tensor& Tensor::operator=(Tensor&& other) noexcept {
+
+    if (this != &other) {
+
+        if (data) cudaFree(data);
+        if (grad) cudaFree(grad);
+
+        data = other.data;
+        grad = other.grad;
+
+        size = other.size;
+        requires_grad = other.requires_grad;
+        creator = other.creator;
+
+        other.data = nullptr;
+        other.grad = nullptr;
+    }
 
     return *this;
 }
@@ -145,6 +142,10 @@ void Tensor::zero_grad() {
 //}
 
 Tensor::~Tensor() {
-    cudaFree(data);
-    if (grad) cudaFree(grad);
+
+    if (data)
+        cudaFree(data);
+
+    if (grad)
+        cudaFree(grad);
 }
