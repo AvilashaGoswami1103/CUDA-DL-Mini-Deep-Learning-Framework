@@ -24,8 +24,8 @@ Tensor::Tensor(const Tensor& other) {
 
     size = other.size;
     requires_grad = other.requires_grad;
-    creator = other.creator;
-    prev = other.prev;
+    creator = nullptr;
+    prev = nullptr;
 
     cudaMalloc(&data, size * sizeof(float));
     cudaMemcpy(data,
@@ -57,8 +57,8 @@ Tensor& Tensor::operator=(const Tensor& other) {
 
         size = other.size;
         requires_grad = other.requires_grad;
-        creator = other.creator;
-        prev = other.prev;
+        creator = nullptr;
+        prev = nullptr;
 
         cudaMalloc(&data, size * sizeof(float));
 
@@ -92,8 +92,8 @@ Tensor::Tensor(Tensor&& other) noexcept {
 
     size = other.size;
     requires_grad = other.requires_grad;
-    creator = other.creator;
-    prev = other.prev;
+    creator = nullptr;
+    prev = nullptr;
 
     other.data = nullptr;
     other.grad = nullptr;
@@ -112,8 +112,8 @@ Tensor& Tensor::operator=(Tensor&& other) noexcept {
 
         size = other.size;
         requires_grad = other.requires_grad;
-        creator = other.creator;
-        prev = other.prev;
+        creator = nullptr;
+        prev = nullptr;
 
         other.data = nullptr;
         other.grad = nullptr;
@@ -136,16 +136,19 @@ void Tensor::zero_grad() {
     }
 }
 
-//Tensor Tensor::backward(Tensor& grad, int batch_size) {
-//
-//    // If tensor has no creator, stop recursion
-//    if (creator == nullptr) {
-//        return grad;
-//    }
-//
-//    // Call backward of creator layer
-//    return creator->backward(grad, batch_size);
-//}
+Tensor Tensor::backward(Tensor& grad, int batch_size) {
+
+    // If no creator, stop graph traversal
+    if (creator == nullptr || prev == nullptr) {
+        return grad;
+    }
+
+    // Current layer backward
+    Tensor prev_grad = creator->backward(grad, batch_size);
+
+    // Recursive traversal
+    return prev->backward(prev_grad, batch_size);
+}
 
 Tensor::~Tensor() {
 

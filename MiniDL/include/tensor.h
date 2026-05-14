@@ -9,7 +9,7 @@ public:
     int size;
     bool requires_grad;
     Layer* creator;
-    Layer* prev;
+    Tensor* prev;
 
     // ✅ ONLY DECLARE
     Tensor(int size, bool requires_grad = false);
@@ -22,7 +22,7 @@ public:
     void fromHost(float* h_data);
     void toHost(float* h_data);
     void zero_grad();
-    //Tensor backward(Tensor& grad, int batch_size = 0);
+    Tensor backward(Tensor& grad, int batch_size = 0);
 
     ~Tensor();
 };

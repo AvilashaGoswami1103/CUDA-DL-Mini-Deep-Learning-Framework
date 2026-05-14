@@ -28,6 +28,7 @@ Tensor ReLU::forward(Tensor& x, int batch_size) {
 
     Tensor out(x.size, false);
     out.creator = this;
+    out.prev = &x;
 
     int threads = 256;
     int blocks = (x.size + threads - 1) / threads;

@@ -98,7 +98,7 @@ int main() {
         Tensor d_out = loss_fn.backward(out, target, batch);
 
         // 🔹 Backward
-        Tensor dX = model.backward(d_out, batch);
+        Tensor dX = logits.backward(d_out, batch);
         // model
 
         // 🔹 Update

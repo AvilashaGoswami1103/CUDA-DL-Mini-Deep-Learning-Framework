@@ -31,6 +31,7 @@ Tensor Softmax::forward(Tensor& x, int batch_size) {
 
     Tensor out(x.size, false);
     out.creator = this;
+    out.prev = &x;
 
     softmax_kernel << <batch_size, 1 >> > (
         x.data,
