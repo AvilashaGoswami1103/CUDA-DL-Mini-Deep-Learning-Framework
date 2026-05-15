@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <cuda_runtime.h>
+#include <memory>
 
 class Layer;
 class Tensor {
@@ -8,8 +9,9 @@ public:
     float* grad;
     int size;
     bool requires_grad;
+
     Layer* creator;
-    Tensor* prev;
+    std::shared_ptr<Tensor> prev;
 
     // ✅ ONLY DECLARE
     Tensor(int size, bool requires_grad = false);

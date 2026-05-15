@@ -24,23 +24,16 @@ Tensor::Tensor(const Tensor& other) {
 
     size = other.size;
     requires_grad = other.requires_grad;
-    creator = nullptr;
-    prev = nullptr;
+    creator = other.creator;
+    prev = other.prev;
 
     cudaMalloc(&data, size * sizeof(float));
-    cudaMemcpy(data,
-        other.data,
-        size * sizeof(float),
-        cudaMemcpyDeviceToDevice);
+    cudaMemcpy(data, other.data, size * sizeof(float), cudaMemcpyDeviceToDevice);
 
     if (requires_grad) {
 
         cudaMalloc(&grad, size * sizeof(float));
-
-        cudaMemcpy(grad,
-            other.grad,
-            size * sizeof(float),
-            cudaMemcpyDeviceToDevice);
+        cudaMemcpy(grad, other.grad, size * sizeof(float), cudaMemcpyDeviceToDevice);
     }
     else {
         grad = nullptr;
@@ -57,8 +50,8 @@ Tensor& Tensor::operator=(const Tensor& other) {
 
         size = other.size;
         requires_grad = other.requires_grad;
-        creator = nullptr;
-        prev = nullptr;
+        creator = other.creator;
+        prev = other.prev;
 
         cudaMalloc(&data, size * sizeof(float));
 
@@ -92,11 +85,12 @@ Tensor::Tensor(Tensor&& other) noexcept {
 
     size = other.size;
     requires_grad = other.requires_grad;
-    creator = nullptr;
-    prev = nullptr;
+    creator = other.creator;
+    prev = std::move(other.prev);
 
     other.data = nullptr;
     other.grad = nullptr;
+    other.creator = nullptr;
 }
 
 // Move assignment
@@ -112,11 +106,12 @@ Tensor& Tensor::operator=(Tensor&& other) noexcept {
 
         size = other.size;
         requires_grad = other.requires_grad;
-        creator = nullptr;
-        prev = nullptr;
+        creator = other.creator;
+        prev = std::move(other.prev);
 
         other.data = nullptr;
         other.grad = nullptr;
+        other.creator = nullptr;
     }
 
     return *this;

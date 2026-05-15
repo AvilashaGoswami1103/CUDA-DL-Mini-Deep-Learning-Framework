@@ -37,7 +37,7 @@ Linear::~Linear() {
 }
 
 Tensor Linear::forward(Tensor& x, int batch_size) {
-    if (input != nullptr) {
+    if (input) {
         delete input;
         input = nullptr;
     }
@@ -45,7 +45,7 @@ Tensor Linear::forward(Tensor& x, int batch_size) {
 
     Tensor out(batch_size * out_features, true);
     out.creator = this;
-    out.prev = &x;
+    out.prev = std::make_shared<Tensor>(x);
 
     dim3 threads(16, 16);
     dim3 blocks(
