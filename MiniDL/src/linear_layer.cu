@@ -4,6 +4,12 @@
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
+#ifdef __INTELLISENSE__
+#define __CUDACC__
+#include <device_launch_parameters.h>
+#define CUDA_KERNEL(grid, block)
+#define <<<grid, block>>>
+#endif
 
 Linear::Linear(int in_f, int out_f) {
     in_features = in_f;

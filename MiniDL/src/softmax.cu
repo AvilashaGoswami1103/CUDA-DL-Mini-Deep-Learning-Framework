@@ -1,6 +1,7 @@
 ﻿#include "softmax.h"
 #include <cuda_runtime.h>
 #include <math.h>
+#include <memory>
 
 __global__ void softmax_kernel(float* input,
     float* output,
@@ -31,7 +32,7 @@ Tensor Softmax::forward(Tensor& x, int batch_size) {
 
     Tensor out(x.size, false);
     out.creator = this;
-    out.prev = &x;
+    out.prev = std::make_shared<Tensor>(x);
 
     softmax_kernel << <batch_size, 1 >> > (
         x.data,
