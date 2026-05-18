@@ -50,8 +50,95 @@ Tensor Linear::forward(Tensor& x, int batch_size) {
     input = new Tensor(x);
 
     Tensor out(batch_size * out_features, true);
-    out.creator = this;
-    out.prev = std::make_shared<Tensor>(x);
+    /*out.creator = this;
+    out.prev = std::make_shared<Tensor>(x);*/
+    out.prev.push_back(std::make_shared<Tensor>(x));
+
+    Tensor* input_ptr = input;
+    Linear* self = this;
+
+    Tensor* input_ptr = input;
+
+    Linear* self = this;
+
+    out.prev.push_back(
+        std::make_shared<Tensor>(*input_ptr)
+    );
+
+    out.backward_fn =
+        [input_ptr, self, batch_size]
+        (Tensor& grad_out) {
+
+        Tensor grad_input(
+            batch_size * self->in_features,
+            false
+        );
+
+        int threads = 256;
+
+        // dW
+        int total_dW =
+            self->in_features *
+            self->out_features;
+
+        int blocks_dW =
+            (total_dW + threads - 1)
+            / threads;
+
+        matmul_backward_dW << <
+            blocks_dW,
+            threads
+            >> > (
+                input_ptr->data,
+                grad_out.grad,
+                self->W->grad,
+                batch_size,
+                self->out_features,
+                self->in_features
+                );
+
+        // dX
+        int total_dX =
+            batch_size *
+            self->in_features;
+
+        int blocks_dX =
+            (total_dX + threads - 1)
+            / threads;
+
+        matmul_backward_dX << <
+            blocks_dX,
+            threads
+            >> > (
+                grad_out.grad,
+                self->W->data,
+                grad_input.data,
+                batch_size,
+                self->out_features,
+                self->in_features
+                );
+
+        // db
+        int blocks_db =
+            (self->out_features + threads - 1)
+            / threads;
+
+        reduce_sum_bias << <
+            blocks_db,
+            threads
+            >> > (
+                grad_out.grad,
+                self->b->grad,
+                batch_size,
+                self->out_features
+                );
+
+        cudaDeviceSynchronize();
+
+        input_ptr->grad = grad_input.data;
+
+        input_ptr->backward();
+        };
 
     dim3 threads(16, 16);
     dim3 blocks(
@@ -80,34 +167,34 @@ Tensor Linear::forward(Tensor& x, int batch_size) {
     return out;
 }
 
-Tensor Linear::backward(Tensor& d_out, int batch_size) {
-    Tensor dX(batch_size * in_features, false);
-
-    int threads = 256;
-
-    int total_dW = in_features * out_features;
-    int blocks_dW = (total_dW + threads - 1) / threads;
-
-    matmul_backward_dW<<<blocks_dW, threads>>>(
-        input->data, d_out.data, W->grad,
-        batch_size, out_features, in_features
-    );
-
-    int total_dX = batch_size * in_features;
-    int blocks_dX = (total_dX + threads - 1) / threads;
-
-    matmul_backward_dX<<<blocks_dX, threads>>>(
-        d_out.data, W->data, dX.data,
-        batch_size, out_features, in_features
-    );
-
-    int blocks_db = (out_features + threads - 1) / threads;
-    reduce_sum_bias<<<blocks_db, threads>>>(
-        d_out.data, b->grad,
-        batch_size, out_features
-    );
-
-    cudaDeviceSynchronize();
-
-    return dX;
-}
+//Tensor Linear::backward(Tensor& d_out, int batch_size) {
+//    Tensor dX(batch_size * in_features, false);
+//
+//    int threads = 256;
+//
+//    int total_dW = in_features * out_features;
+//    int blocks_dW = (total_dW + threads - 1) / threads;
+//
+//    matmul_backward_dW<<<blocks_dW, threads>>>(
+//        input->data, d_out.data, W->grad,
+//        batch_size, out_features, in_features
+//    );
+//
+//    int total_dX = batch_size * in_features;
+//    int blocks_dX = (total_dX + threads - 1) / threads;
+//
+//    matmul_backward_dX<<<blocks_dX, threads>>>(
+//        d_out.data, W->data, dX.data,
+//        batch_size, out_features, in_features
+//    );
+//
+//    int blocks_db = (out_features + threads - 1) / threads;
+//    reduce_sum_bias<<<blocks_db, threads>>>(
+//        d_out.data, b->grad,
+//        batch_size, out_features
+//    );
+//
+//    cudaDeviceSynchronize();
+//
+//    return dX;
+//}

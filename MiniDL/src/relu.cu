@@ -27,8 +27,54 @@ Tensor ReLU::forward(Tensor& x, int batch_size) {
     input = new Tensor(x);   // owns its own GPU copy
 
     Tensor out(x.size, false);
-    out.creator = this;
-    out.prev = std::make_shared<Tensor>(x);
+    /*out.creator = this;
+    out.prev = std::make_shared<Tensor>(x);*/
+    out.prev.push_back(std::make_shared<Tensor>(x));
+
+    out.backward_fn =
+        [input_ptr]
+        (Tensor& grad_out) {
+
+        Tensor grad_input(
+            grad_out.size,
+            false
+        );
+
+        int threads = 256;
+
+        int blocks =
+            (grad_out.size + threads - 1)
+            / threads;
+
+        relu_backward_kernel << <
+            blocks,
+            threads
+            >> > (
+                input_ptr->data,
+                grad_out.grad,
+                grad_input.data,
+                grad_out.size
+                );
+
+        cudaDeviceSynchronize();
+
+        input_ptr->grad =
+            grad_input.data;
+
+        input_ptr->backward();
+        };
+
+    Tensor* input_ptr = input;
+    ReLU* self = this;
+
+    out.backward_fn =
+        [input_ptr, self, batch_size](Tensor& grad_out) {
+
+        Tensor grad_input =
+            self->backward(grad_out, batch_size);
+
+        input_ptr->backward(grad_input);
+        };
 
     int threads = 256;
     int blocks = (x.size + threads - 1) / threads;
@@ -43,19 +89,19 @@ Tensor ReLU::forward(Tensor& x, int batch_size) {
     return out;
 }
 
-Tensor ReLU::backward(Tensor& d_out, int batch_size) {
-    Tensor d_input(d_out.size, false);
-
-    int threads = 256;
-    int blocks = (d_out.size + threads - 1) / threads;
-
-    relu_backward_kernel<<<blocks, threads>>>(
-        input->data,
-        d_out.data,
-        d_input.data,
-        d_out.size
-    );
-
-    cudaDeviceSynchronize();
-    return d_input;
-}
+//Tensor ReLU::backward(Tensor& d_out, int batch_size) {
+//    Tensor d_input(d_out.size, false);
+//
+//    int threads = 256;
+//    int blocks = (d_out.size + threads - 1) / threads;
+//
+//    relu_backward_kernel<<<blocks, threads>>>(
+//        input->data,
+//        d_out.data,
+//        d_input.data,
+//        d_out.size
+//    );
+//
+//    cudaDeviceSynchronize();
+//    return d_input;
+//}

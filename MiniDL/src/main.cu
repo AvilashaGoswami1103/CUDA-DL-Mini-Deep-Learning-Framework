@@ -91,15 +91,21 @@ int main() {
         Tensor target(batch * out_f, false);
         target.fromHost(h_target);
 
-        // 🔹 Loss
-        float loss = loss_fn.forward(out, target, batch, out_f);
+        // 🔹 Loss Tensor
+        Tensor loss =
+            loss_fn.forward(
+                out,
+                target,
+                batch,
+                out_f
+            );
 
-        // 🔥 FIXED backward call
-        Tensor d_out = loss_fn.backward(out, target, batch);
+        // 🔥 TRUE AUTOGRAD
+        loss.backward();
 
-        // 🔹 Backward
-        Tensor dX = logits.backward(d_out, batch);
-        // model
+        float h_loss;
+
+        loss.toHost(&h_loss);
 
         // 🔹 Update
         optimizer.step(layer1.W);
@@ -108,7 +114,13 @@ int main() {
         optimizer.step(layer2.b);
 
         // 🔍 Print
-        cout << "Epoch " << epoch << " Loss: " << loss << " Output: ";
+        float h_loss;
+
+        loss.toHost(&h_loss);
+
+        cout << "Epoch " << epoch
+            << " Loss: " << h_loss << "Output:";
+        
         for (int i = 0; i < batch * out_f; i++)
             cout << h_out[i] << " ";
         cout << endl;

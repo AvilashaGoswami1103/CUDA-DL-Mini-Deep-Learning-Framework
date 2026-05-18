@@ -68,13 +68,13 @@ Tensor Sequential::forward(Tensor& x, int batch_size) {
     return current;  // graph chain kept alive via shared_ptr chain
 }
 
-Tensor Sequential::backward(Tensor& grad, int batch_size) {
-    Tensor current = grad;
-
-    for (int i = layers.size() - 1; i >= 0; i--) {
-        Tensor next = layers[i]->backward(current, batch_size);
-        current = std::move(next);
-    }
-
-    return current;
-}
+//Tensor Sequential::backward(Tensor& grad, int batch_size) {
+//    Tensor current = grad;
+//
+//    for (int i = layers.size() - 1; i >= 0; i--) {
+//        Tensor next = layers[i]->backward(current, batch_size);
+//        current = std::move(next);
+//    }
+//
+//    return current;
+//}

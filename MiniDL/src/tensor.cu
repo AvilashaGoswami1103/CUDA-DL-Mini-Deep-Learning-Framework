@@ -5,9 +5,7 @@
 Tensor::Tensor(int size, bool requires_grad) {
     this->size = size;
     this->requires_grad = requires_grad;
-    creator = nullptr;
-    prev = nullptr;
-
+    
     cudaMalloc(&data, size * sizeof(float));
 
     if (requires_grad) {
@@ -24,9 +22,7 @@ Tensor::Tensor(const Tensor& other) {
 
     size = other.size;
     requires_grad = other.requires_grad;
-    creator = other.creator;
-    prev = other.prev;
-
+    
     cudaMalloc(&data, size * sizeof(float));
     cudaMemcpy(data, other.data, size * sizeof(float), cudaMemcpyDeviceToDevice);
 
@@ -50,8 +46,6 @@ Tensor& Tensor::operator=(const Tensor& other) {
 
         size = other.size;
         requires_grad = other.requires_grad;
-        creator = other.creator;
-        prev = other.prev;
 
         cudaMalloc(&data, size * sizeof(float));
 
@@ -85,12 +79,10 @@ Tensor::Tensor(Tensor&& other) noexcept {
 
     size = other.size;
     requires_grad = other.requires_grad;
-    creator = other.creator;
-    prev = std::move(other.prev);
 
     other.data = nullptr;
     other.grad = nullptr;
-    other.creator = nullptr;
+    
 }
 
 // Move assignment
@@ -106,12 +98,11 @@ Tensor& Tensor::operator=(Tensor&& other) noexcept {
 
         size = other.size;
         requires_grad = other.requires_grad;
-        creator = other.creator;
-        prev = std::move(other.prev);
+        
 
         other.data = nullptr;
         other.grad = nullptr;
-        other.creator = nullptr;
+        
     }
 
     return *this;
@@ -131,18 +122,27 @@ void Tensor::zero_grad() {
     }
 }
 
-Tensor Tensor::backward(Tensor& grad, int batch_size) {
+void Tensor::backward() {
 
-    // If no creator, stop graph traversal
-    if (creator == nullptr || prev == nullptr) {
-        return grad;
+    // Initialize root gradient if missing
+    if (grad == nullptr) {
+
+        cudaMalloc(&grad, size * sizeof(float));
+
+        std::vector<float> ones(size, 1.0f);
+
+        cudaMemcpy(
+            grad,
+            ones.data(),
+            size * sizeof(float),
+            cudaMemcpyHostToDevice
+        );
     }
 
-    // Current layer backward
-    Tensor prev_grad = creator->backward(grad, batch_size);
-
-    // Recursive traversal
-    return prev->backward(prev_grad, batch_size);
+    // Execute local chain rule
+    if (backward_fn) {
+        backward_fn(*this);
+    }
 }
 
 Tensor::~Tensor() {

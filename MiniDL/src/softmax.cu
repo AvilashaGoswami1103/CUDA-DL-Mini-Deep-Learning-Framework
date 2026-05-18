@@ -31,8 +31,22 @@ __global__ void softmax_kernel(float* input,
 Tensor Softmax::forward(Tensor& x, int batch_size) {
 
     Tensor out(x.size, false);
-    out.creator = this;
-    out.prev = std::make_shared<Tensor>(x);
+    /*out.creator = this;
+    out.prev = std::make_shared<Tensor>(x);*/
+
+    Tensor* input_ptr = &x;
+
+    out.prev.push_back(std::make_shared<Tensor>(x));
+
+    out.backward_fn =
+        [input_ptr]
+        (Tensor& grad_out) {
+
+        input_ptr->grad =
+            grad_out.grad;
+
+        input_ptr->backward();
+        };
 
     softmax_kernel << <batch_size, 1 >> > (
         x.data,
@@ -47,6 +61,6 @@ Tensor Softmax::forward(Tensor& x, int batch_size) {
 }
 
 // dummy backward (handled by cross entropy)
-Tensor Softmax::backward(Tensor& grad, int batch_size) {
-    return grad;
-}
+//Tensor Softmax::backward(Tensor& grad, int batch_size) {
+//    return grad;
+//}
