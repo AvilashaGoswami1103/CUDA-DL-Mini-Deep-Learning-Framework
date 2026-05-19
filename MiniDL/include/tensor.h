@@ -33,7 +33,7 @@ public:
     void toHost(float* h_data);
     void zero_grad();
     /*Tensor backward(Tensor& grad, int batch_size = 0);*/
-    void backward(Tensor& incoming_grad);
+    void backward();
 
     ~Tensor();
 };

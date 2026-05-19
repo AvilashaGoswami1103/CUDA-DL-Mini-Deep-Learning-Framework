@@ -57,10 +57,6 @@ Tensor Linear::forward(Tensor& x, int batch_size) {
     Tensor* input_ptr = input;
     Linear* self = this;
 
-    Tensor* input_ptr = input;
-
-    Linear* self = this;
-
     out.prev.push_back(
         std::make_shared<Tensor>(*input_ptr)
     );

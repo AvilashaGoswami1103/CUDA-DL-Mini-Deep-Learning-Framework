@@ -10,5 +10,5 @@ public:
 
     Tensor forward(Tensor& x, int batch_size);
 
-    Tensor backward(Tensor& grad, int batch_size = 0);
+    //Tensor backward(Tensor& grad, int batch_size = 0);
 };

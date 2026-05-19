@@ -113,9 +113,6 @@ int main() {
         optimizer.step(layer2.W);
         optimizer.step(layer2.b);
 
-        // 🔍 Print
-        float h_loss;
-
         loss.toHost(&h_loss);
 
         cout << "Epoch " << epoch
