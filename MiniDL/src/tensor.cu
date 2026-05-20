@@ -47,6 +47,9 @@ Tensor& Tensor::operator=(const Tensor& other) {
         size = other.size;
         requires_grad = other.requires_grad;
 
+        /*backward_fn = std::move(other.backward_fn);
+        prev = std::move(other.prev);*/
+
         cudaMalloc(&data, size * sizeof(float));
 
         cudaMemcpy(data,
@@ -82,6 +85,9 @@ Tensor::Tensor(Tensor&& other) noexcept {
 
     other.data = nullptr;
     other.grad = nullptr;
+
+    backward_fn = std::move(other.backward_fn);
+    prev = std::move(other.prev);
     
 }
 
@@ -98,10 +104,14 @@ Tensor& Tensor::operator=(Tensor&& other) noexcept {
 
         size = other.size;
         requires_grad = other.requires_grad;
+
+        backward_fn = std::move(other.backward_fn);
+        prev = std::move(other.prev);
         
 
         other.data = nullptr;
         other.grad = nullptr;
+
         
     }
 

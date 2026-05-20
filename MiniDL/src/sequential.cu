@@ -56,18 +56,29 @@ void Sequential::add(Layer* layer) {
 }
 
 Tensor Sequential::forward(Tensor& x, int batch_size) {
-    // ✅ Start with a copy so we can reassign 'current' each iteration
-    Tensor current = x;
+    auto prev_sptr = std::shared_ptr<Tensor>(&x, [](Tensor*) {});
+    std::shared_ptr<Tensor> current_sptr;
+
+    // Keep ALL intermediates alive — each one is referenced by the next
+    // layer's backward_fn via no-op ptr, so none can be destroyed early
+    std::vector<std::shared_ptr<Tensor>> all_nodes;
+    all_nodes.push_back(prev_sptr);
 
     for (auto layer : layers) {
-        // ✅ forward() takes Tensor& so dereference correctly
-        Tensor next = layer->forward(current, batch_size);
-        current = std::move(next);   // ✅ move avoids extra GPU alloc/copy
+        Tensor out = layer->forward(*prev_sptr, batch_size);
+        current_sptr = std::make_shared<Tensor>(std::move(out));
+        all_nodes.push_back(current_sptr);
+        prev_sptr = current_sptr;
     }
 
-    return current;  // graph chain kept alive via shared_ptr chain
-}
+    // Attach all intermediates to the output's prev so they stay alive
+    // as long as the returned Tensor lives (which in main.cu spans backward)
+    for (auto& node : all_nodes) {
+        current_sptr->prev.push_back(node);
+    }
 
+    return std::move(*current_sptr);
+}
 //Tensor Sequential::backward(Tensor& grad, int batch_size) {
 //    Tensor current = grad;
 //
