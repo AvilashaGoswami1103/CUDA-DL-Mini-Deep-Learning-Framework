@@ -104,3 +104,6 @@ __global__ void reduce_sum_bias(float* dY, float* db,
     db[col] = sum;
     // Each thread writes one element of db
 }
+
+
+

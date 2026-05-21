@@ -1,4 +1,8 @@
 ﻿#include "optimizer.h"
+#ifdef __INTELLISENSE__
+#define __CUDACC__
+#include <device_launch_parameters.h>
+#endif
 // include header with SGD class declared
 
 __global__ void sgd_update(float* param, float* grad, float lr, int size) {
@@ -34,6 +38,20 @@ void SGD::step(Tensor* param) {
     //passes in values and Each thread updates one element of the parameter tensor using the SGD rule.
 
     cudaDeviceSynchronize();
+}
+
+void SGD::add_param(Tensor* param) {
+    parameters.push_back(param);
+}
+
+void SGD::zero_grad() {
+    for (auto param : parameters)
+        param->zero_grad();
+}
+
+void SGD::step() {
+    for (auto param : parameters)
+        step(param);
 }
 
 // Each CUDA thread updates one parameter element

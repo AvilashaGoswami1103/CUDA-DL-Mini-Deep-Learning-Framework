@@ -4,7 +4,6 @@
 #include <functional>
 #include <vector>
 
-
 class Tensor {
 public:
     float* data;
@@ -12,27 +11,26 @@ public:
     int size;
     bool requires_grad;
 
-    /*Layer* creator;
-    std::shared_ptr<Tensor> prev;*/
-
-    // Autograd graph
+    // Autograd graph — holds previous nodes alive
     std::vector<std::shared_ptr<Tensor>> prev;
 
-    // Backward function
+    // Local gradient function set during forward pass
     std::function<void(Tensor&)> backward_fn;
 
-    // ✅ ONLY DECLARE
     Tensor(int size, bool requires_grad = false);
-    Tensor(const Tensor& other);    // copy constructor
-    Tensor& operator=(const Tensor& other);  // Safe Tensor Copy Assignment
-    Tensor(Tensor&& other) noexcept;    // move constructor
-    Tensor& operator=(Tensor&& other) noexcept;   // move assignment
-
+    Tensor(const Tensor& other);             // copy — value only, no graph
+    Tensor& operator=(const Tensor& other);  // copy assign — value only, no graph
+    Tensor(Tensor&& other) noexcept;         // move — transfers graph
+    Tensor& operator=(Tensor&& other) noexcept; // move assign — transfers graph
 
     void fromHost(float* h_data);
     void toHost(float* h_data);
     void zero_grad();
-    /*Tensor backward(Tensor& grad, int batch_size = 0);*/
+
+    bool visited = false;
+
+    void free_graph();
+    // Called on loss to start backprop. incoming_grad carries dL/d(this).
     void backward();
 
     ~Tensor();
