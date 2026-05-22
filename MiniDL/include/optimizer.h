@@ -13,5 +13,4 @@ public:
     void step(Tensor* param);
 
     void step();
-    void step(Tensor* param);
 };

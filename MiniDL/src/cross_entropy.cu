@@ -70,12 +70,15 @@ Tensor CrossEntropyLoss::forward(
         cudaDeviceSynchronize();
 
         // Propagate gradient to softmax output node
-        pred_sptr->backward(grad_pred);
+        if (pred_sptr->grad == nullptr)
+            cudaMalloc(&pred_sptr->grad, grad_pred.size * sizeof(float));
+        cudaMemcpy(pred_sptr->grad, grad_pred.data,
+            grad_pred.size * sizeof(float), cudaMemcpyDeviceToDevice);
+        // no backward() call — topo sort handles it
         };
 
     if (AutogradContext::grad_enabled) {
-        out.prev.push_back(input_sptr);
-        out.backward_fn = [...](Tensor& grad_out) { ... };
+        
     }
 
     return loss;

@@ -48,7 +48,6 @@ Tensor Softmax::forward(Tensor& x, int batch_size) {
 
     if (AutogradContext::grad_enabled) {
         out.prev.push_back(input_sptr);
-        out.backward_fn = [...](Tensor& grad_out) { ... };
     }
 
     return out;

@@ -52,12 +52,16 @@ Tensor ReLU::forward(Tensor& x, int batch_size) {
         cudaDeviceSynchronize();
 
         // Propagate masked gradient down
-        input_sptr->backward(grad_input);
+        if (input_sptr->grad == nullptr)
+            cudaMalloc(&input_sptr->grad, grad_input.size * sizeof(float));
+        cudaMemcpy(input_sptr->grad, grad_input.data,
+            grad_input.size * sizeof(float), cudaMemcpyDeviceToDevice);
+        // no backward() call — topo sort handles it
         };
 
     if (AutogradContext::grad_enabled) {
         out.prev.push_back(input_sptr);
-        out.backward_fn = [...](Tensor& grad_out) { ... };
+        
     }
 
     return out;

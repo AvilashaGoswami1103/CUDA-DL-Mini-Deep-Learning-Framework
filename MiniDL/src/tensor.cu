@@ -138,7 +138,7 @@ void Tensor::backward() {
     build_topo(this, order, visited);
 
     // Traverse in reverse — from loss back to inputs
-    for (int i = order.size() - 1; i >= 0; i--) {
+    for (int i = (int)order.size() - 1; i >= 0; i--) {
         Tensor* t = order[i];
         if (t->backward_fn)
             t->backward_fn(*t);
