@@ -7,6 +7,7 @@
 #include "linear_layer.h"
 #include "optimizer.h"
 #include "relu.h"
+#include "adam.h"
 #include "softmax.h"
 #include "cross_entropy.h"
 #include "sequential.h"
@@ -42,7 +43,8 @@ int main() {
 
     Softmax          softmax(out_f);
     CrossEntropyLoss loss_fn;
-    SGD              optimizer(0.01f);
+    /*SGD              optimizer(0.01f);*/
+    Adam optimizer(0.001f);  // Adam uses smaller lr typically
 
     optimizer.add_param(layer1.W);
     optimizer.add_param(layer1.b);
