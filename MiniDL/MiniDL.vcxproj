@@ -13,6 +13,7 @@
   <ItemGroup>
     <CudaCompile Include="src\adam.cu" />
     <CudaCompile Include="src\autograd_context.cu" />
+    <CudaCompile Include="src\batchnorm.cu" />
     <CudaCompile Include="src\cross_entropy.cu" />
     <CudaCompile Include="src\dropout.cu" />
     <CudaCompile Include="src\kernels.cu" />
@@ -28,6 +29,7 @@
   <ItemGroup>
     <ClInclude Include="include\adam.h" />
     <ClInclude Include="include\autograd_context.h" />
+    <ClInclude Include="include\batchnorm.h" />
     <ClInclude Include="include\cross_entropy.h" />
     <ClInclude Include="include\dropout.h" />
     <ClInclude Include="include\kernels.h" />

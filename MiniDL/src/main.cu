@@ -13,6 +13,7 @@
 #include "sequential.h"
 #include "dropout.h"
 #include "autograd_context.h"
+#include "batchnorm.h"
 
 using namespace std;
 
@@ -35,12 +36,14 @@ int main() {
 
     // Build model
     Linear layer1(in_f, hidden_f);
+    BatchNorm bn1(hidden_f);
     ReLU   relu;
     Dropout dropout(0.3f);    // drop 30% of neurons
     Linear layer2(hidden_f, out_f);
 
     Sequential model;
     model.add(&layer1);
+    model.add(&bn1);    
     model.add(&relu);
     model.add(&dropout);
     model.add(&layer2);
@@ -52,8 +55,14 @@ int main() {
 
     optimizer.add_param(layer1.W);
     optimizer.add_param(layer1.b);
+    optimizer.add_param(bn1.gamma);   
+    optimizer.add_param(bn1.beta);    
     optimizer.add_param(layer2.W);
     optimizer.add_param(layer2.b);
+
+    // Set training mode explicitly before loop starts
+    bn1.set_training(true);
+    dropout.set_training(true);
 
     // Fixed target labels (one-hot)
     float h_target[] = { 1, 0,   // sample 0: class 0
@@ -72,8 +81,6 @@ int main() {
 
         // --- 1. Zero gradients ---
         optimizer.zero_grad();
-
-        dropout.set_training(true);
 
         // --- 2. Forward pass ---
         // All tensors declared here so they stay alive through backward()
@@ -117,14 +124,15 @@ int main() {
     // -----------------------------------------------
     cout << "\n--- Inference ---" << endl;
 
+    bn1.set_training(false);
     dropout.set_training(false);
     AutogradContext::set_grad_enabled(false);
 
-    Tensor logits = model.forward(x, batch);
-    Tensor out = softmax.forward(logits, batch);
+    Tensor infer_logits = model.forward(x, batch);
+    Tensor infer_out = softmax.forward(infer_logits, batch);
 
     float h_out[4];
-    out.toHost(h_out);
+    infer_out.toHost(h_out);
 
     cout << "Inference Output: ";
     for (int i = 0; i < batch * out_f; i++)
