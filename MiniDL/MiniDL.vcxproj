@@ -14,6 +14,7 @@
     <CudaCompile Include="src\adam.cu" />
     <CudaCompile Include="src\autograd_context.cu" />
     <CudaCompile Include="src\cross_entropy.cu" />
+    <CudaCompile Include="src\dropout.cu" />
     <CudaCompile Include="src\kernels.cu" />
     <CudaCompile Include="src\linear_layer.cu" />
     <CudaCompile Include="src\loss.cu" />
@@ -28,6 +29,7 @@
     <ClInclude Include="include\adam.h" />
     <ClInclude Include="include\autograd_context.h" />
     <ClInclude Include="include\cross_entropy.h" />
+    <ClInclude Include="include\dropout.h" />
     <ClInclude Include="include\kernels.h" />
     <ClInclude Include="include\layer.h" />
     <ClInclude Include="include\linear_layer.h" />
@@ -80,7 +82,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>cudart_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cudart_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;curand.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>

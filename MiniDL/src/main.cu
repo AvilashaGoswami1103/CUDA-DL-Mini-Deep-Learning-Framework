@@ -11,6 +11,8 @@
 #include "softmax.h"
 #include "cross_entropy.h"
 #include "sequential.h"
+#include "dropout.h"
+#include "autograd_context.h"
 
 using namespace std;
 
@@ -34,11 +36,13 @@ int main() {
     // Build model
     Linear layer1(in_f, hidden_f);
     ReLU   relu;
+    Dropout dropout(0.3f);    // drop 30% of neurons
     Linear layer2(hidden_f, out_f);
 
     Sequential model;
     model.add(&layer1);
     model.add(&relu);
+    model.add(&dropout);
     model.add(&layer2);
 
     Softmax          softmax(out_f);
@@ -68,6 +72,8 @@ int main() {
 
         // --- 1. Zero gradients ---
         optimizer.zero_grad();
+
+        dropout.set_training(true);
 
         // --- 2. Forward pass ---
         // All tensors declared here so they stay alive through backward()
@@ -104,6 +110,28 @@ int main() {
 
         this_thread::sleep_for(chrono::milliseconds(100));
     }
+
+    // -----------------------------------------------
+    // INFERENCE — run the trained model, no dropout,
+    // no graph built, no gradients computed
+    // -----------------------------------------------
+    cout << "\n--- Inference ---" << endl;
+
+    dropout.set_training(false);
+    AutogradContext::set_grad_enabled(false);
+
+    Tensor logits = model.forward(x, batch);
+    Tensor out = softmax.forward(logits, batch);
+
+    float h_out[4];
+    out.toHost(h_out);
+
+    cout << "Inference Output: ";
+    for (int i = 0; i < batch * out_f; i++)
+        cout << h_out[i] << " ";
+    cout << endl;
+
+    AutogradContext::set_grad_enabled(true);
 
     return 0;
 }

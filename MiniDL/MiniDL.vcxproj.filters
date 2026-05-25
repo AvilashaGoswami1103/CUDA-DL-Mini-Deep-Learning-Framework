@@ -13,6 +13,7 @@
     <CudaCompile Include="src\sequential.cu" />
     <CudaCompile Include="src\autograd_context.cu" />
     <CudaCompile Include="src\adam.cu" />
+    <CudaCompile Include="src\dropout.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\tensor.h" />
@@ -27,5 +28,6 @@
     <ClInclude Include="include\sequential.h" />
     <ClInclude Include="include\autograd_context.h" />
     <ClInclude Include="include\adam.h" />
+    <ClInclude Include="include\dropout.h" />
   </ItemGroup>
 </Project>
