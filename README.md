@@ -123,6 +123,49 @@ Tensor Safety Upgrade:
 When copying tensors, instead of shallow pointer copy like a=b, we implement:
 Tensor& operator=(const Tensor& other) -> which allocates NEW GPU memory, copies GPU contents safely and avoids double free, also safe memory cleanup.
 
+Updates for 26.05.2026:
+
+Layers included:
+
+•	Linear (fully‑connected)
+•	Header: include/linear_layer.h
+•	Implementation: src/linear_layer.cu
+•	Notes: GPU matmul + addBias kernels, computes dW, dX, db in backward, stores W/b as Tensor*.
+•	ReLU
+•	Header: include/ReLU.h
+•	Implementation: src/relu.cu
+•	Notes: device kernels for forward/backward mask; backward_fn writes masked gradient to previous node.
+•	Softmax
+•	Header: include/softmax.h
+•	Implementation: src/softmax.cu
+•	Notes: per-row softmax kernel; backward is pass‑through because cross‑entropy computes combined grad.
+•	Dropout
+•	Header: include/dropout.h
+•	Implementation: src/dropout.cu
+•	Notes: training/inference modes, uses curand to produce mask on GPU, applies scale; backward multiplies gradient by mask.
+•	BatchNorm
+•	Header: include/batchnorm.h
+•	Implementation: src/batchnorm.cu
+•	Notes: training/inference kernels (batch vs running stats), computes/save xhat/mean/var for backward; exposes gamma/beta parameters.
+•	Conv2D
+•	Header: include/conv2d.h
+•	Implementation: src/conv2d.cu
+•	Notes: forward kernel, gradient kernels for filters / input / bias; stores saved dims for backward.
+Other relevant components (not layers but related)
+•	Sequential container: src/sequential.cu
+•	Tensor + autograd: include/tensor.h, src/tensor.cu
+•	Losses:
+•	CrossEntropyLoss: src/cross_entropy.cu
+•	MSELoss: src/loss.cu
+•	Optimizers:
+•	SGD: src/optimizer.cu / include/optimizer.h
+•	Adam: include/adam.h / src/adam.cu
+•	CUDA kernels (matmul, bias add, grads): src/kernels.cu
+
+Inference Testing results over 500 epochs:
+<img width="714" height="410" alt="image" src="https://github.com/user-attachments/assets/61740a37-5345-482c-af9b-ecbb56c52255" />
+
+
 
 
 
