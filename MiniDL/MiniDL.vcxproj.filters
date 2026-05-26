@@ -15,6 +15,7 @@
     <CudaCompile Include="src\adam.cu" />
     <CudaCompile Include="src\dropout.cu" />
     <CudaCompile Include="src\batchnorm.cu" />
+    <CudaCompile Include="src\conv2d.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\tensor.h" />
@@ -31,5 +32,6 @@
     <ClInclude Include="include\adam.h" />
     <ClInclude Include="include\dropout.h" />
     <ClInclude Include="include\batchnorm.h" />
+    <ClInclude Include="include\conv2d.h" />
   </ItemGroup>
 </Project>

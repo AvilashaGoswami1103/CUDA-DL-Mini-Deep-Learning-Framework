@@ -14,6 +14,7 @@
 #include "dropout.h"
 #include "autograd_context.h"
 #include "batchnorm.h"
+#include "conv2d.h"
 
 using namespace std;
 
@@ -140,6 +141,29 @@ int main() {
     cout << endl;
 
     AutogradContext::set_grad_enabled(true);
+
+    // Example: 1 sample, 1 channel, 4x4 image
+    int N = 1;
+    int C_in = 1;
+    int H = 4;
+    int W = 4;
+
+    float h_img[16] = {
+        1,2,3,4,
+        5,6,7,8,
+        9,10,11,12,
+        13,14,15,16
+    };
+
+    Tensor img(N * C_in * H * W, false);
+    img.fromHost(h_img);
+
+    // 1 input channel, 2 output channels, 3x3 kernel
+    Conv2D conv1(1, 2, 3, 3);
+    conv1.set_input_dims(H, W);  // ← must call this before forward
+
+    Tensor conv_out = conv1.forward(img, N);
+    conv_out.backward();
 
     return 0;
 }
