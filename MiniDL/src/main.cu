@@ -15,6 +15,7 @@
 #include "autograd_context.h"
 #include "batchnorm.h"
 #include "conv2d.h"
+#include "data.h"
 
 using namespace std;
 
@@ -25,19 +26,19 @@ int main() {
     cout << "CUDA Devices: " << deviceCount << endl;
 
     // Network dimensions
-    int batch = 2;
+    int batch = 32;
     int in_f = 3;
-    int hidden_f = 4;
+    int hidden_f = 8;
     int out_f = 2;
 
     // Input data
-    float h_input[] = { 1, 2, 3, 4, 5, 6 };
+    // float h_input[] = { 1, 2, 3, 4, 5, 6 };
     Tensor x(batch * in_f, false);
-    x.fromHost(h_input);
+    x.fromHost(train_data);
 
     // Build model
     Linear layer1(in_f, hidden_f);
-    BatchNorm bn1(hidden_f);
+    BatchNorm bn1(8);
     ReLU   relu;
     Dropout dropout(0.3f);    // drop 30% of neurons
     Linear layer2(hidden_f, out_f);
@@ -66,17 +67,23 @@ int main() {
     dropout.set_training(true);
 
     // Fixed target labels (one-hot)
-    float h_target[] = { 1, 0,   // sample 0: class 0
-                         0, 1 }; // sample 1: class 1
+    //float h_target[] = { 1, 0,   // sample 0: class 0
+    //                     0, 1 }; // sample 1: class 1
 
     // Print input
-    float temp[6];
+    /*float temp[6];
     x.toHost(temp);
     cout << "Input: ";
     for (int i = 0; i < 6; i++) cout << temp[i] << " ";
-    cout << "\n" << endl;
+    cout << "\n" << endl;*/
 
-    int epochs = 20;
+    cout << "Training on " << batch << " samples for " << 500 << " epochs\n" << endl;
+
+    int epochs = 500;
+
+
+    Tensor target(batch * out_f, false);
+    target.fromHost(train_labels);
 
     for (int epoch = 0; epoch < epochs; epoch++) {
 
@@ -87,9 +94,6 @@ int main() {
         // All tensors declared here so they stay alive through backward()
         Tensor logits = model.forward(x, batch);
         Tensor out = softmax.forward(logits, batch);
-
-        Tensor target(batch * out_f, false);
-        target.fromHost(h_target);
 
         Tensor loss = loss_fn.forward(out, target, batch, out_f);
 
@@ -109,22 +113,25 @@ int main() {
         float h_out[4];
         out.toHost(h_out);
 
-        cout << "Epoch " << epoch
-            << "  Loss: " << h_loss
-            << "  Output: ";
-        for (int i = 0; i < batch * out_f; i++)
-            cout << h_out[i] << " ";
-        cout << endl;
+        if (epoch % 50 == 0 || epoch == epochs - 1) {
+            
 
-        this_thread::sleep_for(chrono::milliseconds(100));
+            int correct = 0;
+            for (int i = 0; i < batch; i++) {
+                int pred = (h_out[i * 2] > h_out[i * 2 + 1]) ? 0 : 1;
+                int label = (train_labels[i * 2] > train_labels[i * 2 + 1]) ? 0 : 1;
+                if (pred == label) correct++;
+            }
+            cout << "Epoch " << epoch
+                << "  Loss: " << h_loss
+                << "  Accuracy: " << (float)correct / batch * 100.0f << "%"
+                << endl;
+        }
     }
 
-    // -----------------------------------------------
-    // INFERENCE — run the trained model, no dropout,
-    // no graph built, no gradients computed
-    // -----------------------------------------------
-    cout << "\n--- Inference ---" << endl;
+    // INFERENCE
 
+    cout << "\n--- Inference ---" << endl;
     bn1.set_training(false);
     dropout.set_training(false);
     AutogradContext::set_grad_enabled(false);
@@ -132,16 +139,22 @@ int main() {
     Tensor infer_logits = model.forward(x, batch);
     Tensor infer_out = softmax.forward(infer_logits, batch);
 
-    float h_out[4];
-    infer_out.toHost(h_out);
+    float h_infer[64];
+    infer_out.toHost(h_infer);
 
-    cout << "Inference Output: ";
-    for (int i = 0; i < batch * out_f; i++)
-        cout << h_out[i] << " ";
-    cout << endl;
+    int correct = 0;
+    for (int i = 0; i < batch; i++) {
+        int pred = (h_infer[i * 2] > h_infer[i * 2 + 1]) ? 0 : 1;
+        int label = (train_labels[i * 2] > train_labels[i * 2 + 1]) ? 0 : 1;
+        if (pred == label) correct++;
+    }
+    cout << "Final Accuracy: " << (float)correct / batch * 100.0f << "%" << endl;
 
     AutogradContext::set_grad_enabled(true);
 
+
+    // CONV3D FORWARD TEST
+    cout << "\n--- Conv2D Test ---" << endl;
     // Example: 1 sample, 1 channel, 4x4 image
     int N = 1;
     int C_in = 1;
@@ -163,6 +176,11 @@ int main() {
     conv1.set_input_dims(H, W);  // ← must call this before forward
 
     Tensor conv_out = conv1.forward(img, N);
+
+    // Just verify forward ran without errors
+    printf("Conv2D test: output size = %d (expected %d)\n",
+        conv_out.size, N * 2 * 2 * 2);  // 1 * 2 channels * 2x2 output
+    
     conv_out.backward();
 
     return 0;

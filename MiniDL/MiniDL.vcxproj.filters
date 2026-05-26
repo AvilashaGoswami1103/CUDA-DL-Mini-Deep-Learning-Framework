@@ -33,5 +33,6 @@
     <ClInclude Include="include\dropout.h" />
     <ClInclude Include="include\batchnorm.h" />
     <ClInclude Include="include\conv2d.h" />
+    <ClInclude Include="include\data.h" />
   </ItemGroup>
 </Project>

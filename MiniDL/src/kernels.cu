@@ -1,6 +1,9 @@
 ﻿#include "kernels.h"
 #include<cstdio>
 
+// Device-side flag ensures message prints only once
+__device__ int matmul_printed = 0;
+
 __global__ void matmul(float* A, float* B, float* C,
     int M, int N, int K) {
 
@@ -8,7 +11,10 @@ __global__ void matmul(float* A, float* B, float* C,
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (row == 0 && col == 0) {
-        printf("Kernel running\n");
+        // atomicExch returns the previous value; print only on the first time (prev==0)
+        if (atomicExch(&matmul_printed, 1) == 0) {
+            printf("Kernel running\n");
+        }
     }
 
     if (row < M && col < N) {
