@@ -165,6 +165,10 @@ Other relevant components (not layers but related)
 Inference Testing results over 500 epochs:
 <img width="714" height="410" alt="image" src="https://github.com/user-attachments/assets/61740a37-5345-482c-af9b-ecbb56c52255" />
 
+29.05.2026
+Flow till now:
+<img width="1440" height="2960" alt="image" src="https://github.com/user-attachments/assets/721bcea7-ec84-41b3-af2d-e0a49ce94d7a" />
+
 
 
 
