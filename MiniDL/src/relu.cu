@@ -30,39 +30,29 @@ Tensor ReLU::forward(Tensor& x, int batch_size) {
     input = input_sptr.get();
 
     Tensor out(x.size, false);
-    out.prev.push_back(input_sptr);
 
     int threads = 256;
     int blocks = (x.size + threads - 1) / threads;
-
     relu_forward_kernel << <blocks, threads >> > (x.data, out.data, x.size);
     cudaDeviceSynchronize();
 
-    out.backward_fn = [input_sptr](Tensor& grad_out) {
-
-        // Temporary tensor to hold dX through ReLU mask
-        Tensor grad_input(grad_out.size, false);
-
-        int threads = 256;
-        int blocks = (grad_out.size + threads - 1) / threads;
-
-        relu_backward_kernel << <blocks, threads >> > (
-            input_sptr->data, grad_out.grad, grad_input.data, grad_out.size);
-
-        cudaDeviceSynchronize();
-
-        // Propagate masked gradient down
-        if (input_sptr->grad == nullptr)
-            cudaMalloc(&input_sptr->grad, grad_input.size * sizeof(float));
-        cudaMemcpy(input_sptr->grad, grad_input.data,
-            grad_input.size * sizeof(float), cudaMemcpyDeviceToDevice);
-        // no backward() call — topo sort handles it
-        };
-
     if (AutogradContext::grad_enabled) {
-        out.prev.push_back(input_sptr);
-        
+        out.prev.push_back(input_sptr);   // ← once, inside the if
+
+        out.backward_fn = [input_sptr](Tensor& grad_out) {
+            Tensor grad_input(grad_out.size, false);
+            int threads = 256;
+            int blocks = (grad_out.size + threads - 1) / threads;
+            relu_backward_kernel << <blocks, threads >> > (
+                input_sptr->data, grad_out.grad, grad_input.data, grad_out.size);
+            cudaDeviceSynchronize();
+            if (input_sptr->grad == nullptr)
+                cudaMalloc(&input_sptr->grad, grad_input.size * sizeof(float));
+            cudaMemcpy(input_sptr->grad, grad_input.data,
+                grad_input.size * sizeof(float), cudaMemcpyDeviceToDevice);
+            };
     }
 
     return out;
+
 }

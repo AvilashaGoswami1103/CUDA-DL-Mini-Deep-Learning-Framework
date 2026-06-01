@@ -30,24 +30,19 @@ Tensor Softmax::forward(Tensor& x, int batch_size) {
     auto input_sptr = std::shared_ptr<Tensor>(&x, [](Tensor*) {});
 
     Tensor out(x.size, false);
-    out.prev.push_back(input_sptr);
 
     softmax_kernel << <batch_size, 1 >> > (x.data, out.data, batch_size, num_classes);
     cudaDeviceSynchronize();
 
-    // Softmax backward: passes gradient straight through to logits.
-    // This is correct because CrossEntropyLoss::backward already computes
-    // the combined softmax+CE gradient: (softmax_output - target) / batch_size.
-    // So no extra Jacobian is needed here.
-    out.backward_fn = [input_sptr](Tensor& grad_out) {
-        if (input_sptr->grad == nullptr)
-            cudaMalloc(&input_sptr->grad, grad_out.size * sizeof(float));
-        cudaMemcpy(input_sptr->grad, grad_out.grad,
-            grad_out.size * sizeof(float), cudaMemcpyDeviceToDevice);
-    };
-
     if (AutogradContext::grad_enabled) {
-        out.prev.push_back(input_sptr);
+        out.prev.push_back(input_sptr);   // ← once, inside the if
+
+        out.backward_fn = [input_sptr](Tensor& grad_out) {
+            if (input_sptr->grad == nullptr)
+                cudaMalloc(&input_sptr->grad, grad_out.size * sizeof(float));
+            cudaMemcpy(input_sptr->grad, grad_out.grad,
+                grad_out.size * sizeof(float), cudaMemcpyDeviceToDevice);
+            };
     }
 
     return out;
