@@ -13,12 +13,22 @@ __global__ void softmax_kernel(float* input, float* output,
     int batch_size, int num_classes) {
     int row = blockIdx.x;
     if (row < batch_size) {
+
+        // Step 1: find max value in this row
+        float maxval = input[row * num_classes];
+        for (int j = 1; j < num_classes; j++)
+            maxval = fmaxf(maxval, input[row * num_classes + j]);
+
+        // Step 2: subtract max then exp — values now in range (-inf, 0]
+        // so expf result is in range (0, 1] — never overflows
         float sum = 0.0f;
         for (int j = 0; j < num_classes; j++) {
-            float val = expf(input[row * num_classes + j]);
+            float val = expf(input[row * num_classes + j] - maxval);
             output[row * num_classes + j] = val;
             sum += val;
         }
+
+        // Step 3: normalize
         for (int j = 0; j < num_classes; j++)
             output[row * num_classes + j] /= sum;
     }
