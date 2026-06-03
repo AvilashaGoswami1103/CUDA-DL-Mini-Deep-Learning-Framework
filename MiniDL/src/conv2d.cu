@@ -1,4 +1,5 @@
 #include "conv2d.h"
+#include "cuda_utils.h"
 #include "autograd_context.h"
 #include <cuda_runtime.h>
 #include <cstdio>

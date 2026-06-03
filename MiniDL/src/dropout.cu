@@ -1,5 +1,6 @@
 #include "dropout.h"
 #include "autograd_context.h"
+#include "cuda_utils.h"
 #include <cuda_runtime.h>
 #include <curand_kernel.h>
 #include <memory>

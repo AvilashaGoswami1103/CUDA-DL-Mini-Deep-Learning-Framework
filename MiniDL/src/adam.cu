@@ -1,4 +1,5 @@
 #include "adam.h"
+#include "cuda_utils.h"
 #include <cuda_runtime.h>
 #include <cmath>
 
@@ -39,10 +40,11 @@ void Adam::add_param(Tensor* param) {
     // Allocate and zero moment buffers on GPU
     float* m_buf;
     float* v_buf;
-    cudaMalloc(&m_buf, param->size * sizeof(float));
-    cudaMalloc(&v_buf, param->size * sizeof(float));
-    cudaMemset(m_buf, 0, param->size * sizeof(float));
-    cudaMemset(v_buf, 0, param->size * sizeof(float));
+    CUDA_CHECK(cudaMalloc(&m_buf, size * sizeof(float)));
+    CUDA_CHECK(cudaMemset(&v_buf, 0, size * sizeof(float)));
+
+    CUDA_CHECK(cudaMalloc(m_buf, size * sizeof(float)));
+    CUDA_CHECK(cudaMemset(v_buf, 0, size * sizeof(float)));
 
     m[param] = m_buf;
     v[param] = v_buf;

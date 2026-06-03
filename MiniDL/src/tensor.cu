@@ -9,12 +9,12 @@ Tensor::Tensor(int size, bool requires_grad) {
     this->size = size;
     this->requires_grad = requires_grad;
 
-    cudaMalloc(&data, size * sizeof(float));
-    cudaMemset(data, 0, size * sizeof(float));
+    CUDA_CHECK(cudaMalloc(&data, size * sizeof(float)));
+    CUDA_CHECK(cudaMemset(data, 0, size * sizeof(float)));
 
     if (requires_grad) {
-        cudaMalloc(&grad, size * sizeof(float));
-        cudaMemset(grad, 0, size * sizeof(float));
+        CUDA_CHECK(cudaMalloc(&data, size * sizeof(float)));
+        CUDA_CHECK(cudaMemset(data, 0, size * sizeof(float)));
     }
     else {
         grad = nullptr;
