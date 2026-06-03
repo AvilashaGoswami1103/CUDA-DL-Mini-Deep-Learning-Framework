@@ -1,5 +1,6 @@
 #include "tensor.h"
 #include "layer.h"
+#include "cuda_utils.h"
 #include <cuda_runtime.h>
 #include <vector>
 #include <unordered_set>

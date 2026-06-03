@@ -33,6 +33,7 @@
     <ClInclude Include="include\batchnorm.h" />
     <ClInclude Include="include\conv2d.h" />
     <ClInclude Include="include\cross_entropy.h" />
+    <ClInclude Include="include\cuda_utils.h" />
     <ClInclude Include="include\data.h" />
     <ClInclude Include="include\dropout.h" />
     <ClInclude Include="include\kernels.h" />

@@ -9,6 +9,35 @@
 #include <device_launch_parameters.h>
 #endif
 
+// Computes element-wise: -target[i] * log(pred[i] + eps)
+__global__ void cross_entropy_elementwise_kernel(
+    float* pred, float* target, float* out,
+    int size) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx < size)
+        out[idx] = -target[idx] * logf(pred[idx] + 1e-8f);
+}
+
+// Reduces all elements to a single sum, then divides by batch_size
+__global__ void reduce_sum_kernel(
+    float* input, float* output,
+    int size, float scale) {
+    extern __shared__ float sdata[];
+    int tid = threadIdx.x;
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    sdata[tid] = (idx < size) ? input[idx] : 0.0f;
+    __syncthreads();
+
+    // Parallel reduction in shared memory
+    for (int s = blockDim.x / 2; s > 0; s >>= 1) {
+        if (tid < s) sdata[tid] += sdata[tid + s];
+        __syncthreads();
+    }
+
+    if (tid == 0) atomicAdd(output, sdata[0] * scale);
+}
+
 // Computes combined softmax+CE gradient: (pred - target) / batch_size
 // This is mathematically exact when pred is already softmax output.
 __global__ void cross_entropy_backward_kernel(
@@ -26,25 +55,25 @@ Tensor CrossEntropyLoss::forward(
     int batch_size,
     int num_classes) {
 
-    // Compute scalar loss on CPU
-    float* h_pred = new float[pred.size];
-    float* h_target = new float[target.size];
+    // Allocate temp buffer for element-wise loss values
+    float* d_elem;
+    cudaMalloc(&d_elem, pred.size * sizeof(float));
 
-    pred.toHost(h_pred);
-    target.toHost(h_target);
+    // Step 1: compute -target * log(pred) for each element on GPU
+    int threads = 256;
+    int blocks = (pred.size + threads - 1) / threads;
+    cross_entropy_elementwise_kernel << <blocks, threads >> > (
+        pred.data, target.data, d_elem, pred.size);
 
-    float h_loss = 0.0f;
-    for (int i = 0; i < pred.size; i++)
-        h_loss -= h_target[i] * logf(h_pred[i] + 1e-8f);
-    h_loss /= (float)batch_size;
-
-    delete[] h_pred;
-    delete[] h_target;
-
-    // Scalar loss tensor (requires_grad=true so it has a grad buffer)
+    // Step 2: reduce to scalar and divide by batch_size — all on GPU
     Tensor loss(1, true);
+    cudaMemset(loss.data, 0, sizeof(float));
+    int shared_mem = threads * sizeof(float);
+    reduce_sum_kernel << <blocks, threads, shared_mem >> > (
+        d_elem, loss.data, pred.size, 1.0f / (float)batch_size);
 
-    cudaMemcpy(loss.data, &h_loss, sizeof(float), cudaMemcpyHostToDevice);
+    cudaDeviceSynchronize();
+    cudaFree(d_elem);
 
     // Seed gradient: dL/dL = 1. This is the root of the graph.
     float one = 1.0f;

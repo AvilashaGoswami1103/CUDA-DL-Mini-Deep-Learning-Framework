@@ -34,5 +34,6 @@
     <ClInclude Include="include\batchnorm.h" />
     <ClInclude Include="include\conv2d.h" />
     <ClInclude Include="include\data.h" />
+    <ClInclude Include="include\cuda_utils.h" />
   </ItemGroup>
 </Project>
