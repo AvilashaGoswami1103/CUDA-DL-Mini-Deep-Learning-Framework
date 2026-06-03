@@ -17,6 +17,7 @@
 #include "batchnorm.h"
 #include "conv2d.h"
 #include "data.h"
+#include "checkpoint.h"
 
 using namespace std;
 
@@ -128,6 +129,16 @@ int main() {
                 << endl;
         }
     }
+    // Save after training
+    std::vector<Tensor*> params = {
+        layer1.W, layer1.b,
+        bn1.gamma, bn1.beta,
+        layer2.W, layer2.b
+    };
+    save_checkpoint(params, "minidl_weights.bin");
+
+    // To load instead of training (add this before the loop with an if/else):
+    // load_checkpoint(params, "minidl_weights.bin");
 
     // -------------------------------------------
     // INFERENCE
