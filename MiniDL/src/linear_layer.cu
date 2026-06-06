@@ -16,6 +16,7 @@
 #endif
 
 Linear::Linear(int in_f, int out_f) {
+    cublasCreate(&handle);
     in_features = in_f;
     out_features = out_f;
 
@@ -43,6 +44,7 @@ Linear::Linear(int in_f, int out_f) {
 }
 
 Linear::~Linear() {
+    cublasDestroy(handle);
     delete W;
     delete b;
 }
@@ -66,9 +68,23 @@ Tensor Linear::forward(Tensor& x, int batch_size) {
 
     cudaMemset(out.data, 0, batch_size * out_features * sizeof(float));
 
-    matmul << <blocks, threads >> > (
-        x.data, W->data, out.data,
-        batch_size, out_features, in_features);
+    // cuBLAS uses column-major. To compute C = A*B (row-major)
+// we compute C^T = B^T * A^T using cuBLAS column-major convention.
+// alpha=1, beta=0 means C = 1*A*B + 0*C
+    float alpha = 1.0f, beta = 0.0f;
+    cublasSgemm(handle,
+        CUBLAS_OP_N, CUBLAS_OP_N,
+        out_features,  // rows of output
+        batch_size,    // cols of output
+        in_features,   // inner dimension
+        &alpha,
+        W->data,       // weight matrix
+        out_features,  // leading dimension of W
+        x.data,        // input matrix
+        in_features,   // leading dimension of x
+        &beta,
+        out.data,      // output
+        out_features); // leading dimension of output
 
     addBias << <blocks, threads >> > (
         out.data, b->data, batch_size, out_features);
