@@ -18,6 +18,7 @@
 #include "conv2d.h"
 #include "data.h"
 #include "checkpoint.h"
+#include "grad_check.h"
 
 using namespace std;
 
@@ -91,10 +92,27 @@ int main() {
         loss.backward();
         loss.free_graph();
 
-        // --- 4. Optimizer step ---
+        // --- 4. Gradient check — runs ONLY on epoch 0, then never again ---
+        if (epoch == 0) {
+            auto check_fn = [&]() -> float {
+                optimizer.zero_grad();
+                Tensor lg = model.forward(x, batch);
+                Tensor ot = softmax.forward(lg, batch);
+                Tensor ls = loss_fn.forward(ot, target, batch, out_f);
+                ls.backward();
+                float h;
+                ls.toHost(&h);
+                ls.free_graph();
+                return h;
+                };
+            grad_check(check_fn, layer1.W);
+            grad_check(check_fn, layer2.W);
+        }
+
+        // --- 5. Optimizer step ---
         optimizer.step();
 
-        // --- 5. Print every 10 epochs ---
+        // --- 6. Print every 10 epochs ---
         if (epoch % 10 == 0 || epoch == epochs - 1) {
 
             float h_loss;

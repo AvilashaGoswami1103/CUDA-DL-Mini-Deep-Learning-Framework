@@ -68,6 +68,7 @@ Tensor Linear::forward(Tensor& x, int batch_size) {
 
     cudaMemset(out.data, 0, batch_size * out_features * sizeof(float));
 
+    //cuBLAS Matmul
     // cuBLAS uses column-major. To compute C = A*B (row-major)
 // we compute C^T = B^T * A^T using cuBLAS column-major convention.
 // alpha=1, beta=0 means C = 1*A*B + 0*C
