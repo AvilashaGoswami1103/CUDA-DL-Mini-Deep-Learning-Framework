@@ -31,5 +31,11 @@ public:
         int batch_size
     ) = 0;
 
+    /*virtual Tensor forward(...) = 0; → This is a pure virtual function, meaning:
+    Every subclass must implement its own forward() method.
+    The = 0 syntax marks it as abstract(no default implementation).*/
+
+    // Forces derived classes (like LinearLayer, ConvLayer, etc.) to provide their own implementation of forward().
+    //Abstraction: This design allows you to define different kinds of layers(linear, convolutional, dropout, etc.) that all share the same interface.
     virtual ~Layer() {}
 };
