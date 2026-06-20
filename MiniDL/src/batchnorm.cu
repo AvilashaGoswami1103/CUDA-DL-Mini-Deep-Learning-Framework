@@ -22,7 +22,8 @@ __global__ void batchnorm_forward_kernel(
 
     int j = blockIdx.x * blockDim.x + threadIdx.x;
     if (j >= num_features) return;
-
+	// one thread per feature (column)
+    
     // Compute mean for feature j
     float mu = 0.0f;
     for (int i = 0; i < batch_size; i++)
@@ -50,6 +51,7 @@ __global__ void batchnorm_forward_kernel(
         xhat[i * num_features + j] = xh;
         out[i * num_features + j] = gamma[j] * xh + beta[j];
     }
+
 }
 
 // --- Forward kernel (inference) ---
@@ -63,6 +65,7 @@ __global__ void batchnorm_inference_kernel(
     int j = blockIdx.x * blockDim.x + threadIdx.x;
     if (j >= num_features) return;
 
+    // Normalizes with stored statistics, then applies gamma and beta.
     float inv_std = 1.0f / sqrtf(running_var[j] + eps);
     for (int i = 0; i < batch_size; i++) {
         float xh = (x[i * num_features + j] - running_mean[j]) * inv_std;
@@ -84,6 +87,7 @@ __global__ void batchnorm_backward_kernel(
 
     float inv_std = 1.0f / sqrtf(var[j] + eps);
 
+    // Computes gradients for parameters and input:
     // d_gamma = sum(grad * xhat) over batch
     float dg = 0.0f;
     // d_beta = sum(grad) over batch
@@ -132,6 +136,9 @@ BatchNorm::BatchNorm(int num_features, float eps, float momentum)
         h_gamma[i] = 1.0f;
         h_beta[i] = 0.0f;
     }
+    /*Initializes parameters :
+    gamma = 1 (scale starts neutral).
+    beta = 0 (no shift initially).*/
     gamma->fromHost(h_gamma);
     beta->fromHost(h_beta);
     delete[] h_gamma;
@@ -165,8 +172,10 @@ BatchNorm::~BatchNorm() {
     if (saved_xhat) cudaFree(saved_xhat);
 }
 
+// Forward function
 Tensor BatchNorm::forward(Tensor& x, int batch_size) {
 
+    //Wraps input in a shared pointer for autograd.
     auto input_sptr = std::shared_ptr<Tensor>(&x, [](Tensor*) {});
 
     Tensor out(x.size, false);
@@ -194,7 +203,7 @@ Tensor BatchNorm::forward(Tensor& x, int batch_size) {
         cudaMalloc(&saved_var, num_features * sizeof(float));
         cudaMalloc(&saved_xhat, total * sizeof(float));
     }
-
+    // Calls batchnorm_forward_kernel to compute batch stats, normalize, and update running stats.
     batchnorm_forward_kernel << <blocks, threads >> > (
         x.data, out.data, saved_xhat,
         saved_mean, saved_var,
@@ -207,8 +216,13 @@ Tensor BatchNorm::forward(Tensor& x, int batch_size) {
 
     if (AutogradContext::grad_enabled) {
 
-        BatchNorm* self = this;
+        /*If autograd is enabled :
+        Attaches a backward function that :
+        Zeros gradients for gamma and beta.
+        Calls batchnorm_backward_kernel to compute gradients.
+        Copies gradient wrt input back into the input tensor.*/
 
+        BatchNorm* self = this;
         out.backward_fn = [input_sptr, self, batch_size](Tensor& grad_out) {
 
             Tensor d_x(grad_out.size, false);
