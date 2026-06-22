@@ -1,4 +1,4 @@
-#include "dropout.h"
+﻿#include "dropout.h"
 #include "autograd_context.h"
 #include "cuda_utils.h"
 #include <cuda_runtime.h>
@@ -26,6 +26,14 @@ __global__ void dropout_forward_kernel(
         output[idx] = input[idx] * mask[idx] * scale;
     }
 }
+//Forward kernel :
+//Each thread processes one element of the input.
+//Initializes a CURAND RNG state with a seed.
+//Generates a random number r in(0, 1].
+//If r > p → keep neuron(mask = 1).
+//If r <= p → drop neuron(mask = 0).
+//Output = input × mask × scale.
+//(Scale = 1 / (1 - p) ensures expected value stays consistent.)
 
 __global__ void dropout_backward_kernel(
     float* grad_out, float* mask,
@@ -35,25 +43,32 @@ __global__ void dropout_backward_kernel(
     if (idx < size)
         grad_input[idx] = grad_out[idx] * mask[idx] * scale;
 }
+//Backward kernel :
+//Gradient flows only through neurons that were kept(mask = 1).
+//Computes grad_input = grad_out × mask × scale.
 
 Dropout::Dropout(float p) : p(p), mask(nullptr), mask_size(0), training(true) {}
+// Initializes dropout probability p, sets mask pointer to null, mask size to 0, and training mode to true.
 
 Dropout::~Dropout() {
     if (mask) cudaFree(mask);
 }
+// Frees GPU memory for mask if allocated.
 
-Tensor Dropout::forward(Tensor& x, int batch_size) {
+Tensor Dropout::forward(Tensor& x, int batch_size) {    // defines forward computation
 
     auto input_sptr = std::shared_ptr<Tensor>(&x, [](Tensor*) {});
-
     Tensor out(x.size, false);
     out.prev.push_back(input_sptr);
+    /*Wraps input in a non - owning smart pointer for autograd.
+    Allocates output tensor of same size.
+    Records input as dependency for backprop.*/
 
-    // Inference mode � pass straight through, no mask
+    // Inference mode — pass straight through, no mask
     if (!training) {
         cudaMemcpy(out.data, x.data,
             x.size * sizeof(float),
-            cudaMemcpyDeviceToDevice);
+            cudaMemcpyDeviceToDevice);  // If not training, just copy input to output (no dropout applied).
 
         if (AutogradContext::grad_enabled) {
             out.backward_fn = [input_sptr](Tensor& grad_out) {
@@ -66,10 +81,12 @@ Tensor Dropout::forward(Tensor& x, int batch_size) {
                 };
         }
         return out;
+        // If autograd is enabled, backward just copies gradients through unchanged.
     }
 
-    // Training mode � generate mask and apply
+    // Training mode — generate mask and apply
     float scale = 1.0f / (1.0f - p);
+    // Compute scaling factor to preserve expected output magnitude.
 
     // Allocate or reuse mask buffer
     if (mask_size != x.size) {
@@ -78,12 +95,16 @@ Tensor Dropout::forward(Tensor& x, int batch_size) {
         mask_size = x.size;
     }
 
+    /*Configure CUDA grid / block dimensions.
+    Use system clock as random seed.*/
+
     int threads = 256;
     int blocks = (x.size + threads - 1) / threads;
-
-    // Use clock as seed � different each forward call
+    // Use clock as seed — different each forward call
     unsigned long long seed = (unsigned long long)clock();
 
+    /*Launch forward kernel to generate mask and apply dropout.
+    Synchronize to ensure kernel finishes.*/
     dropout_forward_kernel << <blocks, threads >> > (
         x.data, out.data, mask,
         p, scale, x.size, seed);
@@ -117,6 +138,12 @@ Tensor Dropout::forward(Tensor& x, int batch_size) {
                 cudaMemcpyDeviceToDevice);
             };
     }
+
+    /*If autograd is enabled :
+    Capture mask pointer and scale.
+    Define backward function : Launch backward kernel to compute gradient wrt input.
+    Allocate gradient storage if needed.
+    Copy computed gradient into input’s grad.*/
 
     return out;
 }
