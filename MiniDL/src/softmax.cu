@@ -11,7 +11,8 @@
 
 __global__ void softmax_kernel(float* input, float* output,
     int batch_size, int num_classes) {
-    int row = blockIdx.x;
+    // Each block handles one row (one sample in the batch).
+    int row = blockIdx.x;   // row = index of the sample.
     if (row < batch_size) {
 
         // Step 1: find max value in this row
@@ -30,18 +31,18 @@ __global__ void softmax_kernel(float* input, float* output,
 
         // Step 3: normalize
         for (int j = 0; j < num_classes; j++)
-            output[row * num_classes + j] /= sum;
+            output[row * num_classes + j] /= sum;   // Produces probabilities that sum to 1.
     }
 }
-
-Tensor Softmax::forward(Tensor& x, int batch_size) {
+// forward method
+Tensor Softmax::forward(Tensor& x, int batch_size) {    
 
     // No-op deleter: x is logits from main, owned by logits variable there
     auto input_sptr = std::shared_ptr<Tensor>(&x, [](Tensor*) {});
+    // non-owning smart pointer for autograd
+    Tensor out(x.size, false);  // allocates output tensor of same size
 
-    Tensor out(x.size, false);
-
-    softmax_kernel << <batch_size, 1 >> > (x.data, out.data, batch_size, num_classes);
+    softmax_kernel << <batch_size, 1 >> > (x.data, out.data, batch_size, num_classes);  // Launches CUDA kernel: one block per row, one thread per block.
     cudaDeviceSynchronize();
 
     if (AutogradContext::grad_enabled) {
@@ -54,6 +55,10 @@ Tensor Softmax::forward(Tensor& x, int batch_size) {
                 grad_out.size * sizeof(float), cudaMemcpyDeviceToDevice);
             };
     }
-
+    /*If gradient tracking is enabled :
+    Records input as dependency.
+    Defines backward function :
+    Allocates gradient storage if needed.
+    Copies gradient from output back to input.*/
     return out;
 }
